@@ -10,7 +10,7 @@ import net.minecraft.sounds.SoundEvent;
 import java.util.function.Supplier;
 
 public class ModSounds {
-    public static final ResourceLocation JETPACK_ID = new ResourceLocation(IronJetpacks.MOD_ID, "jetpack");
+    public static final ResourceLocation JETPACK_ID = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "jetpack");
     public static final Supplier<SoundEvent> JETPACK = Suppliers.memoize(() -> SoundEvent.createVariableRangeEvent(JETPACK_ID));
     
     public static void register() {

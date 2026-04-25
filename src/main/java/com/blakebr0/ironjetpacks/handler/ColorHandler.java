@@ -21,7 +21,7 @@ public class ColorHandler {
             return;
         
         for (Jetpack jetpack : registry.getAllJetpacks()) {
-            COLORED_ITEMS.add(jetpack.item.get());
+            COLORED_ITEMS.add((ItemLike) jetpack.item.get());
             COLORED_ITEMS.add(jetpack.cell);
             COLORED_ITEMS.add(jetpack.thruster);
             COLORED_ITEMS.add(jetpack.capacitor);

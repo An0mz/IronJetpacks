@@ -18,7 +18,7 @@ public class ModRecipeSerializers {
     public static final Supplier<RecipeSerializer<JetpackUpgradeRecipe>> CRAFTING_JETPACK_UPGRADE = Suppliers.memoize(JetpackUpgradeRecipe.Serializer::new);
     
     public static void register() {
-        Registry.register(BuiltInRegistries.RECIPE_SERIALIZER, new ResourceLocation(IronJetpacks.MOD_ID, "crafting_jetpack_upgrade"), CRAFTING_JETPACK_UPGRADE.get());
+        Registry.register(BuiltInRegistries.RECIPE_SERIALIZER, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "crafting_jetpack_upgrade"), CRAFTING_JETPACK_UPGRADE.get());
     }
     
     public static void onCommonSetup() {

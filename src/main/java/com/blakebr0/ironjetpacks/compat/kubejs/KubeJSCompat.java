@@ -12,6 +12,6 @@ public class KubeJSCompat implements Consumer<Map<RecipeType<?>, Map<ResourceLoc
     @Override
     public void accept(Map<RecipeType<?>, Map<ResourceLocation, Recipe<?>>> recipeTypeMapMap) {
         Map<ResourceLocation, Recipe<?>> builder = recipeTypeMapMap.computeIfAbsent(RecipeType.CRAFTING, recipeType -> new HashMap<>());
-        JetpackDynamicRecipeManager.appendRecipes(builder::put);
+        JetpackDynamicRecipeManager.appendRecipes((id, holder) -> builder.put(id, holder.value()));
     }
 }

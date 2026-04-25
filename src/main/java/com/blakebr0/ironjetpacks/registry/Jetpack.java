@@ -116,11 +116,11 @@ public class Jetpack {
                 if (!this.craftingMaterialString.equalsIgnoreCase("null")) {
                     String[] parts = craftingMaterialString.split(":");
                     if (parts.length >= 3 && this.craftingMaterialString.startsWith("tag:")) {
-                        TagKey<Item> tag = TagKey.create(Registries.ITEM, new ResourceLocation(parts[1], parts[2]));
+                        TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.parse(parts[1] + ":" + parts[2]));
                         if (tag != null)
                             this.craftingMaterial = Ingredient.of(tag);
                     } else if (parts.length >= 2) {
-                        Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(parts[0], parts[1]));
+                        Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(parts[0] + ":" + parts[1]));
                         if (item != null)
                             this.craftingMaterial = Ingredient.of(item);
                     }

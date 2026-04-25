@@ -2,11 +2,13 @@ package com.blakebr0.ironjetpacks;
 
 import com.blakebr0.ironjetpacks.compat.ftl.FtlCompat;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
+import com.blakebr0.ironjetpacks.crafting.JetpackRecipeInjector;
 import com.blakebr0.ironjetpacks.crafting.ModRecipeSerializers;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.item.ModItems;
 import com.blakebr0.ironjetpacks.network.NetworkHandler;
+import com.blakebr0.ironjetpacks.network.NetworkPayload;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
 import com.blakebr0.ironjetpacks.sound.ModSounds;
@@ -17,12 +19,16 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 public class IronJetpacks implements ModInitializer {
     public static final String MOD_ID = "iron-jetpacks";
@@ -40,10 +46,12 @@ public class IronJetpacks implements ModInitializer {
                     output.accept(jetpack.capacitor);
                     JetpackItem item = jetpack.item.get();
                     output.accept(new ItemStack(item));
-                    
+
                     if (!jetpack.creative) {
                         ItemStack stack = new ItemStack(item);
-                        stack.getOrCreateTag().putDouble("energy", jetpack.capacity);
+                        CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
+                        tag.putDouble("energy", jetpack.capacity);
+                        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
                         output.accept(stack);
                     }
                 }
@@ -56,9 +64,15 @@ public class IronJetpacks implements ModInitializer {
         ModSounds.register();
         ModRecipeSerializers.register();
         ModRecipeSerializers.onCommonSetup();
-        
+
+        ServerLifecycleEvents.SERVER_STARTED.register(JetpackRecipeInjector::inject);
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+            if (success) JetpackRecipeInjector.inject(server);
+        });
+
+        PayloadTypeRegistry.playC2S().register(NetworkPayload.TYPE, NetworkPayload.CODEC);
         NetworkHandler.onCommonSetup();
-        
+
         AutoConfig.register(ModConfigs.Common.class, JanksonConfigSerializer::new);
         
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {

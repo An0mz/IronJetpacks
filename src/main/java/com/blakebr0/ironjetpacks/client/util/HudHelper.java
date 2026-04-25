@@ -40,7 +40,7 @@ public class HudHelper {
     
     public static int getEnergyBarScaled(JetpackItem jetpack, ItemStack stack) {
         if (jetpack.getJetpack().creative) return 156;
-        EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack));
+        EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack));
         double i = energy.getAmount();
         double j = energy.getCapacity();
         return (int) (j != 0 && i != 0 ? (long) i * 156 / j : 0);
@@ -48,7 +48,7 @@ public class HudHelper {
     
     public static String getFuel(JetpackItem jetpack, ItemStack stack) {
         if (jetpack.getJetpack().creative) return ModTooltips.INFINITE.asFormattedString() + ChatFormatting.GRAY + " E";
-        double number = EnergyStorage.ITEM.find(stack, ContainerItemContext.withInitial(stack)).getAmount();
+        double number = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack)).getAmount();
         return UnitUtils.formatEnergy(number, ChatFormatting.GRAY);
     }
     

@@ -30,40 +30,43 @@ import net.minecraft.world.item.ItemStack;
 
 @Environment(EnvType.CLIENT)
 public class IronJetpacksClient {
+    private static final ResourceLocation JETPACK_TEXTURE = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "textures/armor/jetpack.png");
+    private static final ResourceLocation JETPACK_OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "textures/armor/jetpack_overlay.png");
+
     public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(KeyBindingsHandler::onClientTick);
         HudRenderCallback.EVENT.register(HudHandler::onRenderGameOverlay);
         ClientTickEvents.END_CLIENT_TICK.register(JetpackClientHandler::onClientTick);
-        
+
         KeyBindingsHandler.onClientSetup();
         ColorHandler.onClientSetup();
         ModelHandler.onClientSetup();
-        
+
         AutoConfig.register(ModConfigs.Client.class, JanksonConfigSerializer::new);
         for (Jetpack jetpack : JetpackRegistry.getInstance().getAllJetpacks()) {
             ArmorRenderer.register(new ArmorRenderer() {
                 private JetpackModel model;
-                
+
                 @Override
                 public void render(PoseStack matrices, MultiBufferSource vertexConsumers, ItemStack stack, LivingEntity entity, EquipmentSlot slot, int light, HumanoidModel<LivingEntity> contextModel) {
                     int colorTint = jetpack.item.get().getColorTint(1);
                     float r = (float) (colorTint >> 16 & 255) / 255.0F;
                     float g = (float) (colorTint >> 8 & 255) / 255.0F;
                     float b = (float) (colorTint & 255) / 255.0F;
+                    int color = (255 << 24) | ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
                     JetpackModel model = getModel();
                     contextModel.copyPropertiesTo(model);
                     model.setupAnim(entity, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F);
-                    VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(vertexConsumers, RenderType.armorCutoutNoCull(new ResourceLocation(IronJetpacks.MOD_ID + ":textures/armor/jetpack.png")), false, stack.hasFoil());
-                    model.renderToBuffer(matrices, vertexConsumer, light, OverlayTexture.NO_OVERLAY, r, g, b, 1.0F);
-                    vertexConsumer = ItemRenderer.getArmorFoilBuffer(vertexConsumers, RenderType.armorCutoutNoCull(new ResourceLocation(IronJetpacks.MOD_ID + ":textures/armor/jetpack_overlay.png")), false, stack.hasFoil());
-                    model.renderToBuffer(matrices, vertexConsumer, light, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+                    VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(vertexConsumers, RenderType.armorCutoutNoCull(JETPACK_TEXTURE), stack.hasFoil());
+                    model.renderToBuffer(matrices, vertexConsumer, light, OverlayTexture.NO_OVERLAY, color);
+                    vertexConsumer = ItemRenderer.getArmorFoilBuffer(vertexConsumers, RenderType.armorCutoutNoCull(JETPACK_OVERLAY_TEXTURE), stack.hasFoil());
+                    model.renderToBuffer(matrices, vertexConsumer, light, OverlayTexture.NO_OVERLAY, -1);
                 }
-                
+
                 private JetpackModel getModel() {
                     if (model == null) {
                         model = new JetpackModel(jetpack.item.get());
                     }
-                    
                     return model;
                 }
             }, jetpack.item.get());

@@ -37,26 +37,26 @@ public class ModItems {
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
             ComponentItem item = new ComponentItem(jetpack, "cell", new Item.Properties());
             jetpack.setCellItem(item);
-            Registry.register(registry, new ResourceLocation(IronJetpacks.MOD_ID, jetpack.name + "_cell"), item);
+            Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_cell"), item);
         }
         
         // Thrusters
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
             ComponentItem item = new ComponentItem(jetpack, "thruster", new Item.Properties());
             jetpack.setThrusterItem(item);
-            Registry.register(registry, new ResourceLocation(IronJetpacks.MOD_ID, jetpack.name + "_thruster"), item);
+            Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_thruster"), item);
         }
         
         // Capacitors
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
             ComponentItem item = new ComponentItem(jetpack, "capacitor", new Item.Properties());
             jetpack.setCapacitorItem(item);
-            Registry.register(registry, new ResourceLocation(IronJetpacks.MOD_ID, jetpack.name + "_capacitor"), item);
+            Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_capacitor"), item);
         }
         
         // Jetpacks
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
-            Registry.register(registry, new ResourceLocation(IronJetpacks.MOD_ID, jetpack.name + "_jetpack"), jetpack.item.get());
+            Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_jetpack"), jetpack.item.get());
         }
     }
     
@@ -65,7 +65,7 @@ public class ModItems {
     }
     
     private static Supplier<Item> register(String name, Supplier<Item> item) {
-        ResourceLocation loc = new ResourceLocation(IronJetpacks.MOD_ID, name);
+        ResourceLocation loc = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, name);
         ENTRIES.put(loc, item);
         return item;
     }

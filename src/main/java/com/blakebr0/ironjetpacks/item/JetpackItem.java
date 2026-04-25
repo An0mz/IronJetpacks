@@ -15,33 +15,35 @@ import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 import team.reborn.energy.api.EnergyStorage;
 
 import java.util.List;
 
-public class JetpackItem extends DyeableArmorItem implements Colored, DyeableLeatherItem, Enableable, ItemExtension {
+public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemExtension {
     private final Jetpack jetpack;
-    
+
     public JetpackItem(Jetpack jetpack, Properties settings) {
-        super(JetpackUtils.makeArmorMaterial(jetpack), Type.CHESTPLATE, settings.durability(0).rarity(jetpack.rarity));
+        super(Holder.direct(JetpackUtils.makeArmorMaterial(jetpack)), Type.CHESTPLATE, settings.durability(0).rarity(jetpack.rarity));
         this.jetpack = jetpack;
     }
-    
+
     @Override
     public Component getName(ItemStack stack) {
         String name = StringUtils.capitalize(this.jetpack.name.replace(" ", "_"));
         return Component.translatable("item.iron-jetpacks.jetpack", name);
     }
-    
+
     /*
      * Jetpack logic is very much like Simply Jetpacks, since I used it to learn how to make this work
      * Credit to Tonius & Tomson124
@@ -57,27 +59,29 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableLea
                 boolean hover = jetpack.isHovering(chest);
                 if (InputHandler.isHoldingUp(player) || hover && !player.onGround()) {
                     Jetpack info = jetpack.getJetpack();
-                    
+
                     double hoverSpeed = InputHandler.isHoldingDown(player) ? info.speedHover : info.speedHoverSlow;
                     double currentAccel = info.accelVert * (player.getDeltaMovement().y() < 0.3D ? 2.5D : 1.0D);
                     double currentSpeedVertical = info.speedVert * (player.isUnderWater() ? 0.4D : 1.0D);
-                    
+
                     double usage = player.isSprinting() ? info.usage * info.sprintFuel : info.usage;
-                    
+
                     boolean creative = info.creative;
                     StackBaseStorage storage = new StackBaseStorage(stack.copy());
-    
+
                     EnergyStorage energy = EnergyStorage.ITEM.find(stack.copy(), ContainerItemContext.ofPlayerSlot(player, storage));
-                    
+
                     try (Transaction transaction = Transaction.openOuter()) {
                         if (creative || energy.extract((long) usage, transaction) >= usage) {
                             if (!creative) {
                                 transaction.commit();
                                 ItemStack newStack = storage.getResource().toStack();
-                                stack.setTag(newStack.getTag());
+                                CustomData newData = newStack.get(DataComponents.CUSTOM_DATA);
+                                if (newData != null) stack.set(DataComponents.CUSTOM_DATA, newData);
+                                else stack.remove(DataComponents.CUSTOM_DATA);
                                 stack.setCount(newStack.getCount());
                             }
-    
+
                             double motionY = player.getDeltaMovement().y();
                             if (InputHandler.isHoldingUp(player)) {
                                 if (!hover) {
@@ -92,29 +96,29 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableLea
                             } else {
                                 this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
                             }
-    
+
                             float speedSideways = (float) (player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide);
                             float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
-    
+
                             if (InputHandler.isHoldingForwards(player)) {
                                 player.moveRelative(1, new Vec3(0, 0, speedForward));
                             }
-    
+
                             if (InputHandler.isHoldingBackwards(player)) {
                                 player.moveRelative(1, new Vec3(0, 0, -speedSideways * 0.8F));
                             }
-    
+
                             if (InputHandler.isHoldingLeft(player)) {
                                 player.moveRelative(1, new Vec3(speedSideways, 0, 0));
                             }
-    
+
                             if (InputHandler.isHoldingRight(player)) {
                                 player.moveRelative(1, new Vec3(-speedSideways, 0, 0));
                             }
-    
+
                             if (!player.level().isClientSide()) {
                                 player.fallDistance = 0.0F;
-        
+
                                 if (player instanceof ServerPlayer) {
                                     ((ServerPlayNetworkHandlerAccessor) ((ServerPlayer) player).connection).setFloatingTicks(0);
                                 }
@@ -125,40 +129,40 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableLea
             }
         }
     }
-    
+
     @Override
     public boolean isEnchantable(ItemStack stack) {
         return ModConfigs.get().general.enchantableJetpacks && this.jetpack.enchantablilty > 0;
     }
-    
+
     @Override
     public int getBarWidth(ItemStack stack) {
         EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack));
         double stored = energy.getCapacity() - energy.getAmount();
         return (int) Math.round(13.0F - (stored / energy.getCapacity()) * 13.0F);
     }
-    
+
     @Override
     public boolean isBarVisible(ItemStack stack) {
         return !this.jetpack.creative;
     }
-    
+
     @Environment(EnvType.CLIENT)
     @Override
-    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag advanced) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag advanced) {
         if (!this.jetpack.creative) {
             EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack));
             tooltip.add(Component.literal(UnitUtils.formatEnergy(energy.getAmount(), null)).withStyle(ChatFormatting.GRAY).append(" / ").append(Component.literal(UnitUtils.formatEnergy(jetpack.capacity, null))));
         } else {
             tooltip.add(Component.literal("-1 E / ").withStyle(ChatFormatting.GRAY).append(ModTooltips.INFINITE.color(ChatFormatting.GRAY)).append(" E"));
         }
-        
-        Component tier = ModTooltips.TIER.args(this.jetpack.creative ? "Creative" : this.jetpack.tier).withStyle(this.jetpack.rarity.color);
+
+        Component tier = ModTooltips.TIER.args(this.jetpack.creative ? "Creative" : this.jetpack.tier).withStyle(this.jetpack.rarity.color());
         Component engine = ModTooltips.ENGINE.color(isEngineOn(stack) ? ChatFormatting.GREEN : ChatFormatting.RED);
         Component hover = ModTooltips.HOVER.color(isHovering(stack) ? ChatFormatting.GREEN : ChatFormatting.RED);
-        
+
         tooltip.add(ModTooltips.STATE_TOOLTIP_LAYOUT.args(tier, engine, hover));
-        
+
         if (ModConfigs.getClient().general.enableAdvancedInfoTooltips) {
             tooltip.add(Component.literal(""));
             if (!Screen.hasShiftDown()) {
@@ -175,75 +179,58 @@ public class JetpackItem extends DyeableArmorItem implements Colored, DyeableLea
             }
         }
     }
-    
+
     @Environment(EnvType.CLIENT)
     @Override
     public int getColorTint(int i) {
         return i == 1 ? this.jetpack.color : -1;
     }
-    
-    @Override
-    public boolean hasCustomColor(ItemStack stack) {
-        return true;
-    }
-    
-    @Override
-    public int getColor(ItemStack stack) {
-        return this.jetpack.color;
-    }
-    
-    @Override
-    public void clearColor(ItemStack stack) {
-        
-    }
-    
-    @Override
-    public void setColor(ItemStack stack, int color) {
-        
-    }
-    
+
     @Override
     public boolean isEnabled() {
         return !this.jetpack.disabled;
     }
-    
+
     public Jetpack getJetpack() {
         return this.jetpack;
     }
-    
-    // No output
+
     public double getMaxOutput() {
         return 0;
     }
-    
+
     public double getMaxInput() {
         return jetpack.capacity / 20.0;
     }
-    
+
     public boolean isEngineOn(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.contains("Engine") && tag.getBoolean("Engine");
+        if (!stack.has(DataComponents.CUSTOM_DATA)) return false;
+        CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+        return tag.contains("Engine") && tag.getBoolean("Engine");
     }
-    
+
     public boolean toggleEngine(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
         boolean current = tag.contains("Engine") && tag.getBoolean("Engine");
         tag.putBoolean("Engine", !current);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return !current;
     }
-    
+
     public boolean isHovering(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.contains("Hover") && tag.getBoolean("Hover");
+        if (!stack.has(DataComponents.CUSTOM_DATA)) return false;
+        CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+        return tag.contains("Hover") && tag.getBoolean("Hover");
     }
-    
+
     public boolean toggleHover(ItemStack stack) {
-        CompoundTag tag = stack.getOrCreateTag();
+        CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
         boolean current = tag.contains("Hover") && tag.getBoolean("Hover");
         tag.putBoolean("Hover", !current);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return !current;
     }
-    
+
     private void fly(Player player, double y) {
         Vec3 motion = player.getDeltaMovement();
         player.setDeltaMovement(motion.x(), y, motion.z());

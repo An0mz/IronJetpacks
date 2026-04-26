@@ -2,23 +2,23 @@ package com.blakebr0.ironjetpacks.item;
 
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
-import com.blakebr0.ironjetpacks.item.storage.StackBaseStorage;
 import com.blakebr0.ironjetpacks.lib.ModTooltips;
 import com.blakebr0.ironjetpacks.mixins.ServerPlayNetworkHandlerAccessor;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
+import com.mojang.datafixers.util.Pair;
 import dev.architectury.extensions.ItemExtension;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -27,6 +27,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.base.SimpleEnergyItem;
 
 import java.util.List;
 
@@ -67,61 +68,67 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
                     double usage = player.isSprinting() ? info.usage * info.sprintFuel : info.usage;
 
                     boolean creative = info.creative;
-                    StackBaseStorage storage = new StackBaseStorage(stack.copy());
+                    boolean canFly = creative;
 
-                    EnergyStorage energy = EnergyStorage.ITEM.find(stack.copy(), ContainerItemContext.ofPlayerSlot(player, storage));
-
-                    try (Transaction transaction = Transaction.openOuter()) {
-                        if (creative || energy.extract((long) usage, transaction) >= usage) {
-                            if (!creative) {
-                                transaction.commit();
-                                ItemStack newStack = storage.getResource().toStack();
-                                CustomData newData = newStack.get(DataComponents.CUSTOM_DATA);
-                                if (newData != null) stack.set(DataComponents.CUSTOM_DATA, newData);
-                                else stack.remove(DataComponents.CUSTOM_DATA);
-                                stack.setCount(newStack.getCount());
-                            }
-
-                            double motionY = player.getDeltaMovement().y();
-                            if (InputHandler.isHoldingUp(player)) {
-                                if (!hover) {
-                                    this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical));
-                                } else {
-                                    if (InputHandler.isHoldingDown(player)) {
-                                        this.fly(player, Math.min(motionY + currentAccel, -info.speedHoverSlow));
-                                    } else {
-                                        this.fly(player, Math.min(motionY + currentAccel, info.speedHover));
-                                    }
+                    if (!creative) {
+                        long usageLong = (long) usage;
+                        if (player.level().isClientSide()) {
+                            canFly = SimpleEnergyItem.getStoredEnergyUnchecked(chest) >= usageLong;
+                        } else {
+                            long stored = SimpleEnergyItem.getStoredEnergyUnchecked(chest);
+                            if (stored >= usageLong) {
+                                SimpleEnergyItem.setStoredEnergyUnchecked(chest, stored - usageLong);
+                                if (player instanceof ServerPlayer serverPlayer) {
+                                    serverPlayer.connection.send(new ClientboundSetEquipmentPacket(
+                                            serverPlayer.getId(), List.of(Pair.of(EquipmentSlot.CHEST, chest))
+                                    ));
                                 }
+                                canFly = true;
+                            }
+                        }
+                    }
+
+                    if (canFly) {
+                        double motionY = player.getDeltaMovement().y();
+
+                        if (InputHandler.isHoldingUp(player)) {
+                            if (!hover) {
+                                this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical));
                             } else {
-                                this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
-                            }
-
-                            float speedSideways = (float) (player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide);
-                            float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
-
-                            if (InputHandler.isHoldingForwards(player)) {
-                                player.moveRelative(1, new Vec3(0, 0, speedForward));
-                            }
-
-                            if (InputHandler.isHoldingBackwards(player)) {
-                                player.moveRelative(1, new Vec3(0, 0, -speedSideways * 0.8F));
-                            }
-
-                            if (InputHandler.isHoldingLeft(player)) {
-                                player.moveRelative(1, new Vec3(speedSideways, 0, 0));
-                            }
-
-                            if (InputHandler.isHoldingRight(player)) {
-                                player.moveRelative(1, new Vec3(-speedSideways, 0, 0));
-                            }
-
-                            if (!player.level().isClientSide()) {
-                                player.fallDistance = 0.0F;
-
-                                if (player instanceof ServerPlayer) {
-                                    ((ServerPlayNetworkHandlerAccessor) ((ServerPlayer) player).connection).setFloatingTicks(0);
+                                if (InputHandler.isHoldingDown(player)) {
+                                    this.fly(player, Math.min(motionY + currentAccel, -info.speedHoverSlow));
+                                } else {
+                                    this.fly(player, Math.min(motionY + currentAccel, info.speedHover));
                                 }
+                            }
+                        } else {
+                            this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
+                        }
+
+                        float speedSideways = (float) (player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide);
+                        float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
+
+                        if (InputHandler.isHoldingForwards(player)) {
+                            player.moveRelative(1, new Vec3(0, 0, speedForward));
+                        }
+
+                        if (InputHandler.isHoldingBackwards(player)) {
+                            player.moveRelative(1, new Vec3(0, 0, -speedSideways * 0.8F));
+                        }
+
+                        if (InputHandler.isHoldingLeft(player)) {
+                            player.moveRelative(1, new Vec3(speedSideways, 0, 0));
+                        }
+
+                        if (InputHandler.isHoldingRight(player)) {
+                            player.moveRelative(1, new Vec3(-speedSideways, 0, 0));
+                        }
+
+                        if (!player.level().isClientSide()) {
+                            player.fallDistance = 0.0F;
+
+                            if (player instanceof ServerPlayer) {
+                                ((ServerPlayNetworkHandlerAccessor) ((ServerPlayer) player).connection).setFloatingTicks(0);
                             }
                         }
                     }

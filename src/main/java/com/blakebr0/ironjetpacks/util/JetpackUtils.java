@@ -18,7 +18,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
-import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.base.SimpleEnergyItem;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -29,8 +29,10 @@ public class JetpackUtils {
         if (!stack.isEmpty()) {
             Item item = stack.getItem();
             if (item instanceof JetpackItem jetpack) {
-                ItemSlotStorage storage = new ItemSlotStorage(player, EquipmentSlot.CHEST);
-                if (jetpack.isEngineOn(stack) && (EnergyStorage.ITEM.find(stack, ContainerItemContext.ofSingleSlot(storage)).getAmount() > 0 || player.isCreative() || jetpack.getJetpack().creative)) {
+                Jetpack info = jetpack.getJetpack();
+                boolean hasEnergy = info.creative || player.isCreative()
+                        || SimpleEnergyItem.getStoredEnergyUnchecked(stack) >= (long) info.usage;
+                if (jetpack.isEngineOn(stack) && hasEnergy) {
                     if (jetpack.isHovering(stack)) {
                         return !player.onGround();
                     } else {
@@ -39,7 +41,6 @@ public class JetpackUtils {
                 }
             }
         }
-
         return false;
     }
 

@@ -33,9 +33,11 @@ public class Jetpack {
     public double speedVert;
     public double accelVert;
     public double speedSide;
+    public double speedHoverAscend;
     public double speedHover;
     public double speedHoverSlow;
     public double sprintSpeed;
+    public double sprintSpeedVert;
     public double sprintFuel;
     
     public Jetpack(String name, int tier, int color, int armorPoints, int enchantability, String craftingMaterialString) {
@@ -48,17 +50,19 @@ public class Jetpack {
         this.item = Suppliers.memoize(() -> new JetpackItem(this, new Item.Properties()));
     }
     
-    public Jetpack setStats(double capacity, double usage, double speedVert, double accelVert, double speedSide, double speedHover, double speedHoverSlow, double sprintSpeed, double sprintFuel) {
+    public Jetpack setStats(double capacity, double usage, double speedVert, double accelVert, double speedSide, double speedHoverAscend, double speedHover, double speedHoverSlow, double sprintSpeed, double sprintSpeedVert, double sprintFuel) {
         this.capacity = capacity;
         this.usage = usage;
         this.speedVert = speedVert;
         this.accelVert = accelVert;
         this.speedSide = speedSide;
+        this.speedHoverAscend = speedHoverAscend;
         this.speedHover = speedHover;
         this.speedHoverSlow = speedHoverSlow;
         this.sprintSpeed = sprintSpeed;
+        this.sprintSpeedVert = sprintSpeedVert;
         this.sprintFuel = sprintFuel;
-        
+
         return this;
     }
     

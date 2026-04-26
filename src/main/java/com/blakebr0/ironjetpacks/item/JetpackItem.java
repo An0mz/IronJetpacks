@@ -83,21 +83,24 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
                             }
 
                             double motionY = player.getDeltaMovement().y();
+                            double throttle = jetpack.getThrottle(chest);
+                            double vertSprintMulti = motionY >= 0 && (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.sprintSpeedVert : 1.0D;
+
                             if (InputHandler.isHoldingUp(player)) {
                                 if (!hover) {
-                                    this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical));
+                                    this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical) * throttle * vertSprintMulti);
                                 } else {
                                     if (InputHandler.isHoldingDown(player)) {
                                         this.fly(player, Math.min(motionY + currentAccel, -info.speedHoverSlow));
                                     } else {
-                                        this.fly(player, Math.min(motionY + currentAccel, info.speedHover));
+                                        this.fly(player, Math.min(motionY + currentAccel, info.speedHoverAscend) * throttle * vertSprintMulti);
                                     }
                                 }
                             } else {
                                 this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
                             }
 
-                            float speedSideways = (float) (player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide);
+                            float speedSideways = (float) ((player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide) * throttle);
                             float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
 
                             if (InputHandler.isHoldingForwards(player)) {
@@ -227,6 +230,48 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
         CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
         boolean current = tag.contains("Hover") && tag.getBoolean("Hover");
         tag.putBoolean("Hover", !current);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        return !current;
+    }
+
+    public double getThrottle(ItemStack stack) {
+        if (!stack.has(DataComponents.CUSTOM_DATA)) return 1.0;
+        CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+        return tag.contains("Throttle") ? tag.getDouble("Throttle") : 1.0;
+    }
+
+    public double incrementThrottle(ItemStack stack) {
+        CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
+        double throttle = tag.contains("Throttle") ? tag.getDouble("Throttle") : 1.0;
+        if (throttle < 1.0) {
+            throttle = Math.min(throttle + 0.2, 1.0);
+            tag.putDouble("Throttle", throttle);
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
+        return throttle;
+    }
+
+    public double decrementThrottle(ItemStack stack) {
+        CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
+        double throttle = tag.contains("Throttle") ? tag.getDouble("Throttle") : 1.0;
+        if (throttle > 0.2) {
+            throttle = Math.max(throttle - 0.2, 0.2);
+            tag.putDouble("Throttle", throttle);
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
+        return throttle;
+    }
+
+    public boolean isHUDEnabled(ItemStack stack) {
+        if (!stack.has(DataComponents.CUSTOM_DATA)) return true;
+        CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+        return !tag.contains("HUD") || tag.getBoolean("HUD");
+    }
+
+    public boolean toggleHUD(ItemStack stack) {
+        CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
+        boolean current = !tag.contains("HUD") || tag.getBoolean("HUD");
+        tag.putBoolean("HUD", !current);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return !current;
     }

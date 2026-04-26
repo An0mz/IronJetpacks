@@ -1,7 +1,10 @@
 package com.blakebr0.ironjetpacks.network;
 
+import com.blakebr0.ironjetpacks.network.message.DecrementThrottleMessage;
+import com.blakebr0.ironjetpacks.network.message.IncrementThrottleMessage;
 import com.blakebr0.ironjetpacks.network.message.ToggleEngineMessage;
 import com.blakebr0.ironjetpacks.network.message.ToggleHoverMessage;
+import com.blakebr0.ironjetpacks.network.message.ToggleHUDMessage;
 import com.blakebr0.ironjetpacks.network.message.UpdateInputMessage;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.api.EnvType;
@@ -20,6 +23,9 @@ public class NetworkHandler {
                 case 0 -> ToggleHoverMessage.onMessage(ToggleHoverMessage.read(buf), context.server(), context.player());
                 case 1 -> UpdateInputMessage.onMessage(UpdateInputMessage.read(buf), context.server(), context.player());
                 case 2 -> ToggleEngineMessage.onMessage(ToggleEngineMessage.read(buf), context.server(), context.player());
+                case 3 -> IncrementThrottleMessage.onMessage(IncrementThrottleMessage.read(buf), context.server(), context.player());
+                case 4 -> DecrementThrottleMessage.onMessage(DecrementThrottleMessage.read(buf), context.server(), context.player());
+                case 5 -> ToggleHUDMessage.onMessage(ToggleHUDMessage.read(buf), context.server(), context.player());
             }
         });
     }
@@ -43,5 +49,26 @@ public class NetworkHandler {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         ToggleEngineMessage.write(message, buf);
         ClientPlayNetworking.send(new NetworkPayload(2, buf));
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static void sendToServer(IncrementThrottleMessage message) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        IncrementThrottleMessage.write(message, buf);
+        ClientPlayNetworking.send(new NetworkPayload(3, buf));
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static void sendToServer(DecrementThrottleMessage message) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        DecrementThrottleMessage.write(message, buf);
+        ClientPlayNetworking.send(new NetworkPayload(4, buf));
+    }
+
+    @Environment(EnvType.CLIENT)
+    public static void sendToServer(ToggleHUDMessage message) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        ToggleHUDMessage.write(message, buf);
+        ClientPlayNetworking.send(new NetworkPayload(5, buf));
     }
 }

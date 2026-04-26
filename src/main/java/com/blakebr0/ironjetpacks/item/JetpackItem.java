@@ -2,7 +2,7 @@ package com.blakebr0.ironjetpacks.item;
 
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
-import com.blakebr0.ironjetpacks.item.storage.StackBaseStorage;
+import com.blakebr0.ironjetpacks.item.storage.ItemSlotStorage;
 import com.blakebr0.ironjetpacks.lib.ModTooltips;
 import com.blakebr0.ironjetpacks.mixins.ServerPlayNetworkHandlerAccessor;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
@@ -64,25 +64,31 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
                     double currentAccel = info.accelVert * (player.getDeltaMovement().y() < 0.3D ? 2.5D : 1.0D);
                     double currentSpeedVertical = info.speedVert * (player.isUnderWater() ? 0.4D : 1.0D);
 
-                    double usage = player.isSprinting() ? info.usage * info.sprintFuel : info.usage;
+                    double usage = (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.usage * info.sprintFuel : info.usage;
 
                     boolean creative = info.creative;
-                    StackBaseStorage storage = new StackBaseStorage(stack.copy());
+                    boolean canFly = creative;
 
-                    EnergyStorage energy = EnergyStorage.ITEM.find(stack.copy(), ContainerItemContext.ofPlayerSlot(player, storage));
-
-                    try (Transaction transaction = Transaction.openOuter()) {
-                        if (creative || energy.extract((long) usage, transaction) >= usage) {
-                            if (!creative) {
-                                transaction.commit();
-                                ItemStack newStack = storage.getResource().toStack();
-                                CustomData newData = newStack.get(DataComponents.CUSTOM_DATA);
-                                if (newData != null) stack.set(DataComponents.CUSTOM_DATA, newData);
-                                else stack.remove(DataComponents.CUSTOM_DATA);
-                                stack.setCount(newStack.getCount());
+                    if (!creative) {
+                        if (player.level().isClientSide()) {
+                            EnergyStorage energy = EnergyStorage.ITEM.find(chest, ContainerItemContext.withConstant(chest));
+                            canFly = energy != null && energy.getAmount() >= usage;
+                        } else {
+                            ItemSlotStorage slotStorage = new ItemSlotStorage(player, EquipmentSlot.CHEST);
+                            EnergyStorage energy = EnergyStorage.ITEM.find(chest, ContainerItemContext.ofSingleSlot(slotStorage));
+                            if (energy != null) {
+                                try (Transaction transaction = Transaction.openOuter()) {
+                                    if (energy.extract((long) usage, transaction) >= usage) {
+                                        transaction.commit();
+                                        canFly = true;
+                                    }
+                                }
                             }
+                        }
+                    }
 
-                            double motionY = player.getDeltaMovement().y();
+                    if (canFly) {
+                        double motionY = player.getDeltaMovement().y();
                             double throttle = jetpack.getThrottle(chest);
                             double vertSprintMulti = motionY >= 0 && (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.sprintSpeedVert : 1.0D;
 
@@ -126,7 +132,6 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
                                     ((ServerPlayNetworkHandlerAccessor) ((ServerPlayer) player).connection).setFloatingTicks(0);
                                 }
                             }
-                        }
                     }
                 }
             }

@@ -2,23 +2,23 @@ package com.blakebr0.ironjetpacks.item;
 
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
-import com.blakebr0.ironjetpacks.item.storage.ItemSlotStorage;
 import com.blakebr0.ironjetpacks.lib.ModTooltips;
 import com.blakebr0.ironjetpacks.mixins.ServerPlayNetworkHandlerAccessor;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
+import com.mojang.datafixers.util.Pair;
 import dev.architectury.extensions.ItemExtension;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -27,6 +27,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
 import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.base.SimpleEnergyItem;
 
 import java.util.List;
 
@@ -70,19 +71,19 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
                     boolean canFly = creative;
 
                     if (!creative) {
+                        long usageLong = (long) usage;
                         if (player.level().isClientSide()) {
-                            EnergyStorage energy = EnergyStorage.ITEM.find(chest, ContainerItemContext.withConstant(chest));
-                            canFly = energy != null && energy.getAmount() >= usage;
+                            canFly = SimpleEnergyItem.getStoredEnergyUnchecked(chest) >= usageLong;
                         } else {
-                            ItemSlotStorage slotStorage = new ItemSlotStorage(player, EquipmentSlot.CHEST);
-                            EnergyStorage energy = EnergyStorage.ITEM.find(chest, ContainerItemContext.ofSingleSlot(slotStorage));
-                            if (energy != null) {
-                                try (Transaction transaction = Transaction.openOuter()) {
-                                    if (energy.extract((long) usage, transaction) >= usage) {
-                                        transaction.commit();
-                                        canFly = true;
-                                    }
+                            long stored = SimpleEnergyItem.getStoredEnergyUnchecked(chest);
+                            if (stored >= usageLong) {
+                                SimpleEnergyItem.setStoredEnergyUnchecked(chest, stored - usageLong);
+                                if (player instanceof ServerPlayer serverPlayer) {
+                                    serverPlayer.connection.send(new ClientboundSetEquipmentPacket(
+                                        serverPlayer.getId(), List.of(Pair.of(EquipmentSlot.CHEST, chest))
+                                    ));
                                 }
+                                canFly = true;
                             }
                         }
                     }
@@ -145,9 +146,9 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack));
-        double stored = energy.getCapacity() - energy.getAmount();
-        return (int) Math.round(13.0F - (stored / energy.getCapacity()) * 13.0F);
+        long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+        long capacity = (long) this.jetpack.capacity;
+        return (int) Math.round(13.0F - ((double)(capacity - stored) / capacity) * 13.0F);
     }
 
     @Override
@@ -159,8 +160,8 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag advanced) {
         if (!this.jetpack.creative) {
-            EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack));
-            tooltip.add(Component.literal(UnitUtils.formatEnergy(energy.getAmount(), null)).withStyle(ChatFormatting.GRAY).append(" / ").append(Component.literal(UnitUtils.formatEnergy(jetpack.capacity, null))));
+            long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+            tooltip.add(Component.literal(UnitUtils.formatEnergy(stored, null)));
         } else {
             tooltip.add(Component.literal("-1 E / ").withStyle(ChatFormatting.GRAY).append(ModTooltips.INFINITE.color(ChatFormatting.GRAY)).append(" E"));
         }

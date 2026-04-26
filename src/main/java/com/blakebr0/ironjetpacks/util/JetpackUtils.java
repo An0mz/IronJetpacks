@@ -3,11 +3,7 @@ package com.blakebr0.ironjetpacks.util;
 import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
-import com.blakebr0.ironjetpacks.item.storage.ItemSlotStorage;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -17,7 +13,6 @@ import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import team.reborn.energy.api.EnergyStorage;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -29,8 +24,12 @@ public class JetpackUtils {
         if (!stack.isEmpty()) {
             Item item = stack.getItem();
             if (item instanceof JetpackItem jetpack) {
-                ItemSlotStorage storage = new ItemSlotStorage(player, EquipmentSlot.CHEST);
-                if (jetpack.isEngineOn(stack) && (EnergyStorage.ITEM.find(stack, ContainerItemContext.ofSingleSlot(storage)).getAmount() > 0 || player.isCreative() || jetpack.getJetpack().creative)) {
+                Jetpack info = jetpack.getJetpack();
+                boolean hasEnergy = info.creative || player.isCreative();
+                if (!hasEnergy) {
+                    hasEnergy = team.reborn.energy.api.base.SimpleEnergyItem.getStoredEnergyUnchecked(stack) >= (long) info.usage;
+                }
+                if (jetpack.isEngineOn(stack) && hasEnergy) {
                     if (jetpack.isHovering(stack)) {
                         return !player.onGround();
                     } else {

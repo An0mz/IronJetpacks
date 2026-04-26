@@ -6,7 +6,8 @@ import com.blakebr0.ironjetpacks.crafting.recipe.JetpackUpgradeRecipe;
 import com.blakebr0.ironjetpacks.item.ModItems;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
-import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -15,19 +16,20 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
 
 public class JetpackDynamicRecipeManager {
-    public static void appendRecipes(BiConsumer<ResourceLocation, RecipeHolder<?>> appender) {
+    public static void appendRecipes(BiConsumer<ResourceKey<Recipe<?>>, RecipeHolder<?>> appender) {
         JetpackRegistry.getInstance().getAllJetpacks().forEach(jetpack -> {
-            Map.Entry<ResourceLocation, ShapedRecipe> cell = makeCellRecipe(jetpack);
-            Map.Entry<ResourceLocation, ShapedRecipe> thruster = makeThrusterRecipe(jetpack);
-            Map.Entry<ResourceLocation, ShapedRecipe> capacitor = makeCapacitorRecipe(jetpack);
-            Map.Entry<ResourceLocation, ShapedRecipe> jetpackSelf = makeJetpackRecipe(jetpack);
-            Map.Entry<ResourceLocation, JetpackUpgradeRecipe> jetpackUpgrade = makeJetpackUpgradeRecipe(jetpack);
+            Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> cell = makeCellRecipe(jetpack);
+            Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> thruster = makeThrusterRecipe(jetpack);
+            Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> capacitor = makeCapacitorRecipe(jetpack);
+            Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> jetpackSelf = makeJetpackRecipe(jetpack);
+            Map.Entry<ResourceKey<Recipe<?>>, JetpackUpgradeRecipe> jetpackUpgrade = makeJetpackUpgradeRecipe(jetpack);
 
             if (cell != null)
                 appender.accept(cell.getKey(), new RecipeHolder<>(cell.getKey(), cell.getValue()));
@@ -42,11 +44,15 @@ public class JetpackDynamicRecipeManager {
         });
     }
 
-    private static ShapedRecipePattern toPattern(int width, int height, NonNullList<Ingredient> inputs) {
+    private static ResourceKey<Recipe<?>> recipeKey(String path) {
+        return ResourceKey.create(Registries.RECIPE, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, path));
+    }
+
+    private static ShapedRecipePattern toPattern(int width, int height, List<Optional<Ingredient>> inputs) {
         return new ShapedRecipePattern(width, height, inputs, Optional.empty());
     }
 
-    private static Map.Entry<ResourceLocation, ShapedRecipe> makeCellRecipe(Jetpack jetpack) {
+    private static Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> makeCellRecipe(Jetpack jetpack) {
         if (!ModConfigs.get().recipe.enableCellRecipes)
             return null;
 
@@ -54,23 +60,23 @@ public class JetpackDynamicRecipeManager {
 
         Ingredient material = jetpack.getCraftingMaterial();
         Item coilItem = jetpacks.getCoilForTier(jetpack.tier);
-        if (material == Ingredient.EMPTY || coilItem == null)
+        if (material == null || coilItem == null)
             return null;
 
         Ingredient coil = Ingredient.of(coilItem);
         Ingredient redstone = Ingredient.of(Items.REDSTONE);
-        NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY,
-                Ingredient.EMPTY, redstone, Ingredient.EMPTY,
-                material, coil, material,
-                Ingredient.EMPTY, redstone, Ingredient.EMPTY
+        List<Optional<Ingredient>> inputs = List.of(
+                Optional.empty(),          Optional.of(redstone), Optional.empty(),
+                Optional.of(material),     Optional.of(coil),     Optional.of(material),
+                Optional.empty(),          Optional.of(redstone), Optional.empty()
         );
 
-        ResourceLocation name = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_cell");
+        ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_cell");
         ItemStack output = new ItemStack(jetpack.cell);
-        return Map.entry(name, new ShapedRecipe("iron-jetpacks:cells", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new ShapedRecipe("iron-jetpacks:cells", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
     }
 
-    private static Map.Entry<ResourceLocation, ShapedRecipe> makeThrusterRecipe(Jetpack jetpack) {
+    private static Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> makeThrusterRecipe(Jetpack jetpack) {
         if (!ModConfigs.get().recipe.enableThrusterRecipes)
             return null;
 
@@ -78,44 +84,44 @@ public class JetpackDynamicRecipeManager {
 
         Ingredient material = jetpack.getCraftingMaterial();
         Item coilItem = jetpacks.getCoilForTier(jetpack.tier);
-        if (material == Ingredient.EMPTY || coilItem == null)
+        if (material == null || coilItem == null)
             return null;
 
         Ingredient coil = Ingredient.of(coilItem);
         Ingredient cell = Ingredient.of(jetpack.cell);
         Ingredient furnace = Ingredient.of(Blocks.FURNACE);
-        NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY,
-                material, coil, material,
-                coil, cell, coil,
-                material, furnace, material
+        List<Optional<Ingredient>> inputs = List.of(
+                Optional.of(material), Optional.of(coil),    Optional.of(material),
+                Optional.of(coil),     Optional.of(cell),    Optional.of(coil),
+                Optional.of(material), Optional.of(furnace), Optional.of(material)
         );
 
-        ResourceLocation name = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_thruster");
+        ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_thruster");
         ItemStack output = new ItemStack(jetpack.thruster);
-        return Map.entry(name, new ShapedRecipe("iron-jetpacks:thrusters", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new ShapedRecipe("iron-jetpacks:thrusters", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
     }
 
-    private static Map.Entry<ResourceLocation, ShapedRecipe> makeCapacitorRecipe(Jetpack jetpack) {
+    private static Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> makeCapacitorRecipe(Jetpack jetpack) {
         if (!ModConfigs.get().recipe.enableCapacitorRecipes)
             return null;
 
         Ingredient material = jetpack.getCraftingMaterial();
-        if (material == Ingredient.EMPTY)
+        if (material == null)
             return null;
 
         Ingredient cell = Ingredient.of(jetpack.cell);
-        NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY,
-                material, cell, material,
-                material, cell, material,
-                material, cell, material
+        List<Optional<Ingredient>> inputs = List.of(
+                Optional.of(material), Optional.of(cell), Optional.of(material),
+                Optional.of(material), Optional.of(cell), Optional.of(material),
+                Optional.of(material), Optional.of(cell), Optional.of(material)
         );
 
-        ResourceLocation name = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_capacitor");
+        ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_capacitor");
         ItemStack output = new ItemStack(jetpack.capacitor);
-        return Map.entry(name, new ShapedRecipe("iron-jetpacks:capacitors", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new ShapedRecipe("iron-jetpacks:capacitors", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
     }
 
-    private static Map.Entry<ResourceLocation, ShapedRecipe> makeJetpackRecipe(Jetpack jetpack) {
+    private static Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> makeJetpackRecipe(Jetpack jetpack) {
         if (!ModConfigs.get().recipe.enableJetpackRecipes)
             return null;
 
@@ -124,24 +130,24 @@ public class JetpackDynamicRecipeManager {
             return null;
 
         Ingredient material = jetpack.getCraftingMaterial();
-        if (material == Ingredient.EMPTY)
+        if (material == null)
             return null;
 
         Ingredient capacitor = Ingredient.of(jetpack.capacitor);
         Ingredient thruster = Ingredient.of(jetpack.thruster);
         Ingredient strap = Ingredient.of(ModItems.STRAP.get());
-        NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY,
-                material, capacitor, material,
-                material, strap, material,
-                thruster, Ingredient.EMPTY, thruster
+        List<Optional<Ingredient>> inputs = List.of(
+                Optional.of(material),  Optional.of(capacitor), Optional.of(material),
+                Optional.of(material),  Optional.of(strap),     Optional.of(material),
+                Optional.of(thruster),  Optional.empty(),        Optional.of(thruster)
         );
 
-        ResourceLocation name = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_jetpack");
+        ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_jetpack");
         ItemStack output = new ItemStack(jetpack.item.get());
-        return Map.entry(name, new ShapedRecipe("iron-jetpacks:jetpacks", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new ShapedRecipe("iron-jetpacks:jetpacks", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
     }
 
-    private static Map.Entry<ResourceLocation, JetpackUpgradeRecipe> makeJetpackUpgradeRecipe(Jetpack jetpack) {
+    private static Map.Entry<ResourceKey<Recipe<?>>, JetpackUpgradeRecipe> makeJetpackUpgradeRecipe(Jetpack jetpack) {
         if (!ModConfigs.get().recipe.enableJetpackRecipes)
             return null;
 
@@ -150,7 +156,7 @@ public class JetpackDynamicRecipeManager {
             return null;
 
         Ingredient material = jetpack.getCraftingMaterial();
-        if (material == Ingredient.EMPTY)
+        if (material == null)
             return null;
 
         Ingredient capacitor = Ingredient.of(jetpack.capacitor);
@@ -158,14 +164,14 @@ public class JetpackDynamicRecipeManager {
         Ingredient jetpackTier = Ingredient.of(ModRecipeSerializers.ALL_JETPACKS.stream()
                 .filter(item -> item.getJetpack().tier == jetpack.tier - 1)
                 .toArray(ItemLike[]::new));
-        NonNullList<Ingredient> inputs = NonNullList.of(Ingredient.EMPTY,
-                material, capacitor, material,
-                material, jetpackTier, material,
-                thruster, Ingredient.EMPTY, thruster
+        List<Optional<Ingredient>> inputs = List.of(
+                Optional.of(material),  Optional.of(capacitor),   Optional.of(material),
+                Optional.of(material),  Optional.of(jetpackTier), Optional.of(material),
+                Optional.of(thruster),  Optional.empty(),          Optional.of(thruster)
         );
 
-        ResourceLocation name = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_jetpack");
+        ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_jetpack");
         ItemStack output = new ItemStack(jetpack.item.get());
-        return Map.entry(name, new JetpackUpgradeRecipe("iron-jetpacks:jetpacks", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new JetpackUpgradeRecipe("iron-jetpacks:jetpacks", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
     }
 }

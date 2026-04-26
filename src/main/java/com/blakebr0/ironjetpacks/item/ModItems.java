@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
@@ -35,23 +37,26 @@ public class ModItems {
         
         // Energy Cells
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
-            ComponentItem item = new ComponentItem(jetpack, "cell", new Item.Properties());
+            ResourceLocation cellLoc = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_cell");
+            ComponentItem item = new ComponentItem(jetpack, "cell", new Item.Properties().setId(ResourceKey.create(Registries.ITEM, cellLoc)));
             jetpack.setCellItem(item);
-            Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_cell"), item);
+            Registry.register(registry, cellLoc, item);
         }
-        
+
         // Thrusters
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
-            ComponentItem item = new ComponentItem(jetpack, "thruster", new Item.Properties());
+            ResourceLocation thrusterLoc = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_thruster");
+            ComponentItem item = new ComponentItem(jetpack, "thruster", new Item.Properties().setId(ResourceKey.create(Registries.ITEM, thrusterLoc)));
             jetpack.setThrusterItem(item);
-            Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_thruster"), item);
+            Registry.register(registry, thrusterLoc, item);
         }
-        
+
         // Capacitors
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
-            ComponentItem item = new ComponentItem(jetpack, "capacitor", new Item.Properties());
+            ResourceLocation capacitorLoc = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_capacitor");
+            ComponentItem item = new ComponentItem(jetpack, "capacitor", new Item.Properties().setId(ResourceKey.create(Registries.ITEM, capacitorLoc)));
             jetpack.setCapacitorItem(item);
-            Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_capacitor"), item);
+            Registry.register(registry, capacitorLoc, item);
         }
         
         // Jetpacks
@@ -61,7 +66,8 @@ public class ModItems {
     }
     
     private static Supplier<Item> register(String name) {
-        return register(name, Suppliers.memoize(() -> new Item(new Item.Properties())));
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, name));
+        return register(name, Suppliers.memoize(() -> new Item(new Item.Properties().setId(key))));
     }
     
     private static Supplier<Item> register(String name, Supplier<Item> item) {

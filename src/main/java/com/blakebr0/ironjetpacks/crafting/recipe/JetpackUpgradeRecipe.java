@@ -27,7 +27,7 @@ public class JetpackUpgradeRecipe extends ShapedRecipe {
     @Override
     public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
         ItemStack jetpack = input.getItem(4);
-        ItemStack result = this.getResultItem(registries).copy();
+        ItemStack result = this.output.copy();
 
         if (!jetpack.isEmpty() && jetpack.getItem() instanceof JetpackItem) {
             CustomData customData = jetpack.get(DataComponents.CUSTOM_DATA);
@@ -40,7 +40,7 @@ public class JetpackUpgradeRecipe extends ShapedRecipe {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<JetpackUpgradeRecipe> getSerializer() {
         return ModRecipeSerializers.CRAFTING_JETPACK_UPGRADE.get();
     }
 
@@ -48,7 +48,7 @@ public class JetpackUpgradeRecipe extends ShapedRecipe {
         @Override
         public MapCodec<JetpackUpgradeRecipe> codec() {
             return RecipeSerializer.SHAPED_RECIPE.codec().xmap(
-                shaped -> new JetpackUpgradeRecipe(shaped.getGroup(), shaped.category(), ((ShapedRecipeAccessor) (Object) shaped).getPattern(), ((ShapedRecipeAccessor) (Object) shaped).getResult()),
+                shaped -> new JetpackUpgradeRecipe(shaped.group(), shaped.category(), ((ShapedRecipeAccessor) (Object) shaped).getPattern(), ((ShapedRecipeAccessor) (Object) shaped).getResult()),
                 recipe -> recipe
             );
         }
@@ -56,7 +56,7 @@ public class JetpackUpgradeRecipe extends ShapedRecipe {
         @Override
         public StreamCodec<RegistryFriendlyByteBuf, JetpackUpgradeRecipe> streamCodec() {
             return RecipeSerializer.SHAPED_RECIPE.streamCodec().map(
-                shaped -> new JetpackUpgradeRecipe(shaped.getGroup(), shaped.category(), ((ShapedRecipeAccessor) (Object) shaped).getPattern(), ((ShapedRecipeAccessor) (Object) shaped).getResult()),
+                shaped -> new JetpackUpgradeRecipe(shaped.group(), shaped.category(), ((ShapedRecipeAccessor) (Object) shaped).getPattern(), ((ShapedRecipeAccessor) (Object) shaped).getResult()),
                 recipe -> recipe
             );
         }

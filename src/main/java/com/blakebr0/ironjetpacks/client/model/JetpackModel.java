@@ -1,10 +1,10 @@
 package com.blakebr0.ironjetpacks.client.model;
 
 import com.blakebr0.ironjetpacks.item.JetpackItem;
-import com.blakebr0.ironjetpacks.item.storage.ItemSlotStorage;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
 import net.minecraft.client.model.*;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -12,8 +12,8 @@ import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.world.item.ItemStack;
 import team.reborn.energy.api.EnergyStorage;
 
 /*
@@ -21,8 +21,9 @@ import team.reborn.energy.api.EnergyStorage;
  * https://github.com/Tomson124/SimplyJetpacks-2/blob/1.12/src/main/java/tonius/simplyjetpacks/client/model/ModelJetpack.java
  */
 @Environment(EnvType.CLIENT)
-public class JetpackModel extends HumanoidModel<LivingEntity> {
+public class JetpackModel extends HumanoidModel<HumanoidRenderState> {
     private final JetpackItem jetpack;
+    private ItemStack currentItemStack = ItemStack.EMPTY;
     private final ModelPart[] energyBarLeft = new ModelPart[6];
     private final ModelPart[] energyBarRight = new ModelPart[6];
     
@@ -117,35 +118,42 @@ public class JetpackModel extends HumanoidModel<LivingEntity> {
         return data.getRoot().bake(64, 64);
     }
     
+    public void setCurrentItemStack(ItemStack stack) {
+        this.currentItemStack = stack;
+    }
+
     @Override
-    public void setupAnim(LivingEntity entity, float f1, float f2, float f3, float netHeadYaw, float headPitch) {
-        super.setupAnim(entity, f1, f2, f3, netHeadYaw, headPitch);
-        
+    public void setupAnim(HumanoidRenderState state) {
+        super.setupAnim(state);
+
         if (this.jetpack.getJetpack().creative) {
             this.resetEnergyBars();
             this.energyBarLeft[5].visible = true;
             this.energyBarRight[5].visible = true;
         } else {
-            ItemSlotStorage storage = new ItemSlotStorage(entity, EquipmentSlot.CHEST);
-            EnergyStorage energy = EnergyStorage.ITEM.find(storage.getStack(), ContainerItemContext.ofSingleSlot(storage));
-            double stored = (double) energy.getAmount() / energy.getCapacity();
-            
-            int state = 0;
+            ItemStack stack = this.currentItemStack;
+            EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofSingleSlot(new SingleStackStorage() {
+                @Override public ItemStack getStack() { return stack; }
+                @Override protected void setStack(ItemStack s) { }
+            }));
+            double stored = (energy != null && energy.getCapacity() > 0) ? (double) energy.getAmount() / energy.getCapacity() : 0.0;
+
+            int barState = 0;
             if (stored > 0.8) {
-                state = 5;
+                barState = 5;
             } else if (stored > 0.6) {
-                state = 4;
+                barState = 4;
             } else if (stored > 0.4) {
-                state = 3;
+                barState = 3;
             } else if (stored > 0.2) {
-                state = 2;
+                barState = 2;
             } else if (stored > 0) {
-                state = 1;
+                barState = 1;
             }
-            
+
             this.resetEnergyBars();
-            this.energyBarLeft[state].visible = true;
-            this.energyBarRight[state].visible = true;
+            this.energyBarLeft[barState].visible = true;
+            this.energyBarRight[barState].visible = true;
         }
     }
     

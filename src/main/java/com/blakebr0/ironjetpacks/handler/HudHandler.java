@@ -5,14 +5,14 @@ import com.blakebr0.ironjetpacks.client.util.HudHelper;
 import com.blakebr0.ironjetpacks.client.util.HudHelper.HudPos;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ChatScreen;
-import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
@@ -35,13 +35,11 @@ public class HudHandler {
                         int xPos = (int) (pos.x / 0.33) - 18;
                         int yPos = (int) (pos.y / 0.33) - 78;
                         
-                        RenderSystem.setShaderTexture(0, HUD_TEXTURE);
-                        
                         graphics.pose().pushPose();
                         graphics.pose().scale(0.33f, 0.33f, 1.0f);
-                        graphics.blit(HUD_TEXTURE, xPos, yPos, 0, 0, 0, 28, 156, 256, 256);
+                        graphics.blit(RenderType::guiTextured, HUD_TEXTURE, xPos, yPos, 0, 0, 28, 156, 256, 256);
                         int i2 = HudHelper.getEnergyBarScaled(jetpack, chest);
-                        graphics.blit(HUD_TEXTURE, xPos, 166 - i2 + yPos - 10, 0, 28, 156 - i2, 28, i2, 256, 256);
+                        graphics.blit(RenderType::guiTextured, HUD_TEXTURE, xPos, 166 - i2 + yPos - 10, 28, 156 - i2, 28, i2, 256, 256);
                         graphics.pose().popPose();
                         
                         String fuel = ChatFormatting.GRAY + HudHelper.getFuel(jetpack, chest);

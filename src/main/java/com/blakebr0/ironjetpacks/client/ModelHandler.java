@@ -4,11 +4,9 @@ import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.model.loading.v1.DelegatingUnbakedModel;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class ModelHandler {
@@ -23,13 +21,13 @@ public class ModelHandler {
                 // Check at resolve time, not setup time
                 for (var j : JetpackRegistry.getInstance().getAllJetpacks()) {
                     if (path.equals("item/" + j.name + "_cell"))
-                        return ctx.getOrLoadModel(ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "item/cell"));
+                        return new DelegatingUnbakedModel(ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "item/cell"));
                     if (path.equals("item/" + j.name + "_capacitor"))
-                        return ctx.getOrLoadModel(ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "item/capacitor"));
+                        return new DelegatingUnbakedModel(ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "item/capacitor"));
                     if (path.equals("item/" + j.name + "_thruster"))
-                        return ctx.getOrLoadModel(ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "item/thruster"));
+                        return new DelegatingUnbakedModel(ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "item/thruster"));
                     if (path.equals("item/" + j.name + "_jetpack"))
-                        return ctx.getOrLoadModel(ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "item/jetpack"));
+                        return new DelegatingUnbakedModel(ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "item/jetpack"));
                 }
 
                 return null;

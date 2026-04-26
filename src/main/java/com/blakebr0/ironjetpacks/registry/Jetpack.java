@@ -1,10 +1,12 @@
 package com.blakebr0.ironjetpacks.registry;
 
+import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.item.ComponentItem;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.google.common.base.Suppliers;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -21,6 +23,7 @@ public class Jetpack {
     public int enchantablilty;
     public String craftingMaterialString;
     private Ingredient craftingMaterial;
+    private boolean craftingMaterialResolved = false;
     public Supplier<JetpackItem> item;
     public boolean creative = false;
     public boolean disabled = false;
@@ -45,7 +48,10 @@ public class Jetpack {
         this.armorPoints = armorPoints;
         this.enchantablilty = enchantability;
         this.craftingMaterialString = craftingMaterialString;
-        this.item = Suppliers.memoize(() -> new JetpackItem(this, new Item.Properties()));
+        this.item = Suppliers.memoize(() -> {
+            ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, name + "_jetpack"));
+            return new JetpackItem(this, new Item.Properties().setId(key));
+        });
     }
     
     public Jetpack setStats(double capacity, double usage, double speedVert, double accelVert, double speedSide, double speedHover, double speedHoverSlow, double sprintSpeed, double sprintFuel) {
@@ -110,26 +116,25 @@ public class Jetpack {
     }
     
     public Ingredient getCraftingMaterial() {
-        if (this.craftingMaterial == null || this.craftingMaterial.isEmpty()) {
-            this.craftingMaterial = Ingredient.EMPTY;
+        if (!this.craftingMaterialResolved) {
+            this.craftingMaterialResolved = true;
             try {
                 if (!this.craftingMaterialString.equalsIgnoreCase("null")) {
                     String[] parts = craftingMaterialString.split(":");
                     if (parts.length >= 3 && this.craftingMaterialString.startsWith("tag:")) {
                         TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.parse(parts[1] + ":" + parts[2]));
-                        if (tag != null)
-                            this.craftingMaterial = Ingredient.of(tag);
+                        BuiltInRegistries.ITEM.get(tag).ifPresent(holderSet ->
+                            this.craftingMaterial = Ingredient.of(holderSet));
                     } else if (parts.length >= 2) {
-                        Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(parts[0] + ":" + parts[1]));
-                        if (item != null)
-                            this.craftingMaterial = Ingredient.of(item);
+                        BuiltInRegistries.ITEM.get(ResourceLocation.parse(parts[0] + ":" + parts[1]))
+                            .ifPresent(ref -> this.craftingMaterial = Ingredient.of(ref.value()));
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        
+
         return this.craftingMaterial;
     }
 }

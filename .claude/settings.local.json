@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./gradlew compileJava)"
+      "Bash(./gradlew compileJava)",
+      "Bash(xargs grep *)",
+      "Bash(jar tf *)",
+      "Bash(grep -v \"/$\")",
+      "Bash(javap *)"
     ]
   }
 }

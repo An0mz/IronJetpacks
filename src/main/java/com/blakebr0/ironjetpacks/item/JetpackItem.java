@@ -15,8 +15,8 @@ import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,7 +34,7 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
     private final Jetpack jetpack;
 
     public JetpackItem(Jetpack jetpack, Properties settings) {
-        super(Holder.direct(JetpackUtils.makeArmorMaterial(jetpack)), Type.CHESTPLATE, settings.durability(0).rarity(jetpack.rarity));
+        super(JetpackUtils.makeArmorMaterial(jetpack), ArmorType.CHESTPLATE, settings.durability(0).rarity(jetpack.rarity));
         this.jetpack = jetpack;
     }
 
@@ -130,7 +130,6 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
         }
     }
 
-    @Override
     public boolean isEnchantable(ItemStack stack) {
         return ModConfigs.get().general.enchantableJetpacks && this.jetpack.enchantablilty > 0;
     }

@@ -183,7 +183,7 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
     @Environment(EnvType.CLIENT)
     @Override
     public int getColorTint(int i) {
-        return i == 1 ? this.jetpack.color : -1;
+        return i == 0 ? (0xFF000000 | this.jetpack.color) : -1;
     }
 
     @Override

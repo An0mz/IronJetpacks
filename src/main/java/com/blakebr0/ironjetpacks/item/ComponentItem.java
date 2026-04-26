@@ -25,10 +25,10 @@ public class ComponentItem extends Item implements Colored, Enableable {
         String name = StringUtils.capitalize(this.name.replace(" ", "_"));
         return Component.translatable("item.iron-jetpacks." + this.type, name);
     }
-    
+
     @Override
     public int getColorTint(int i) {
-        return this.color;
+        return 0xFF000000 | this.color;
     }
     
     @Override

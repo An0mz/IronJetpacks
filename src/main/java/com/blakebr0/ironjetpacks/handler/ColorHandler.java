@@ -12,24 +12,27 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class ColorHandler {
-    private static final List<ItemLike> COLORED_ITEMS = new ArrayList<>();
-    
     public static void onClientSetup() {
         JetpackRegistry registry = JetpackRegistry.getInstance();
-        
-        if (registry.isErrored())
-            return;
-        
+        if (registry.isErrored()) return;
+
+        List<ItemLike> items = new ArrayList<>();
         for (Jetpack jetpack : registry.getAllJetpacks()) {
-            COLORED_ITEMS.add((ItemLike) jetpack.item.get());
-            COLORED_ITEMS.add(jetpack.cell);
-            COLORED_ITEMS.add(jetpack.thruster);
-            COLORED_ITEMS.add(jetpack.capacitor);
+            items.add(jetpack.item.get());
+            items.add(jetpack.cell);
+            items.add(jetpack.thruster);
+            items.add(jetpack.capacitor);
         }
-        
-        ColorProviderRegistry.ITEM.register((stack, tintIndex) -> {
-            Colored item = (Colored) stack.getItem();
-            return item.getColorTint(tintIndex);
-        }, COLORED_ITEMS.toArray(new ItemLike[0]));
+
+        ColorProviderRegistry.ITEM.register(
+                (stack, tintIndex) -> {
+                    if (stack.getItem() instanceof Colored colored) {
+                        return colored.getColorTint(tintIndex);
+                    }
+                    return -1;
+                },
+                items.toArray(new ItemLike[0])
+        );
+
     }
 }

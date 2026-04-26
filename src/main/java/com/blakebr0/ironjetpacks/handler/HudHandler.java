@@ -43,15 +43,18 @@ public class HudHandler {
                         graphics.pose().popPose();
                         
                         String fuel = ChatFormatting.GRAY + HudHelper.getFuel(jetpack, chest);
+                        String throttle = ChatFormatting.GRAY + "T: " + (int) (jetpack.getThrottle(chest) * 100) + "%";
                         String engine = ChatFormatting.GRAY + "E: " + HudHelper.getOn(jetpack.isEngineOn(chest));
                         String hover = ChatFormatting.GRAY + "H: " + HudHelper.getOn(jetpack.isHovering(chest));
-                        
+
                         if (pos.side == 1) {
                             graphics.drawString(mc.font, fuel, pos.x - 8 - mc.font.width(fuel), pos.y - 21, 16383998);
+                            graphics.drawString(mc.font, throttle, pos.x - 8 - mc.font.width(throttle), pos.y - 6, 16383998);
                             graphics.drawString(mc.font, engine, pos.x - 8 - mc.font.width(engine), pos.y + 4, 16383998);
                             graphics.drawString(mc.font, hover, pos.x - 8 - mc.font.width(hover), pos.y + 14, 16383998);
                         } else {
                             graphics.drawString(mc.font, fuel, pos.x + 6, pos.y - 21, 16383998);
+                            graphics.drawString(mc.font, throttle, pos.x + 6, pos.y - 6, 16383998);
                             graphics.drawString(mc.font, engine, pos.x + 6, pos.y + 4, 16383998);
                             graphics.drawString(mc.font, hover, pos.x + 6, pos.y + 14, 16383998);
                         }

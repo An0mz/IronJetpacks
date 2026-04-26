@@ -15,7 +15,10 @@
 
   "keybind.iron-jetpacks.engine": "Toggle Engine",
   "keybind.iron-jetpacks.hover": "Toggle Hover Mode",
+  "keybind.iron-jetpacks.hud": "Toggle HUD",
   "keybind.iron-jetpacks.descend": "Descend",
+  "keybind.iron-jetpacks.increment_throttle": "Increase Throttle",
+  "keybind.iron-jetpacks.decrement_throttle": "Decrease Throttle",
 
   "subtitle.iron-jetpacks.jetpack": "Jetpack",
 
@@ -36,5 +39,7 @@
   "tooltip.iron-jetpacks.sprint_fuel_modifier": "§7Sprint Fuel Modifier: §a%s",
   "tooltip.iron-jetpacks.toggle_engine": "Toggled Engine %s",
   "tooltip.iron-jetpacks.toggle_hover": "Toggled Hover %s",
+  "tooltip.iron-jetpacks.toggle_hud": "Toggled HUD %s",
+  "tooltip.iron-jetpacks.change_throttle": "Throttle set to %s",
   "tooltip.iron-jetpacks.state_tooltip_layout": "%s §7| %s §7| %s"
 }

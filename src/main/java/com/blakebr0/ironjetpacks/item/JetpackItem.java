@@ -65,7 +65,7 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
                     double currentAccel = info.accelVert * (player.getDeltaMovement().y() < 0.3D ? 2.5D : 1.0D);
                     double currentSpeedVertical = info.speedVert * (player.isUnderWater() ? 0.4D : 1.0D);
 
-                    double usage = player.isSprinting() ? info.usage * info.sprintFuel : info.usage;
+                    double usage = (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.usage * info.sprintFuel : info.usage;
 
                     boolean creative = info.creative;
                     boolean canFly = creative;
@@ -90,22 +90,24 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
 
                     if (canFly) {
                         double motionY = player.getDeltaMovement().y();
+                        double throttle = jetpack.getThrottle(chest);
+                        double vertSprintMulti = motionY >= 0 && (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.sprintSpeedVert : 1.0D;
 
                         if (InputHandler.isHoldingUp(player)) {
                             if (!hover) {
-                                this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical));
+                                this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical) * throttle * vertSprintMulti);
                             } else {
                                 if (InputHandler.isHoldingDown(player)) {
                                     this.fly(player, Math.min(motionY + currentAccel, -info.speedHoverSlow));
                                 } else {
-                                    this.fly(player, Math.min(motionY + currentAccel, info.speedHover));
+                                    this.fly(player, Math.min(motionY + currentAccel, info.speedHoverAscend) * throttle * vertSprintMulti);
                                 }
                             }
                         } else {
                             this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
                         }
 
-                        float speedSideways = (float) (player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide);
+                        float speedSideways = (float) ((player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide) * throttle);
                         float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
 
                         if (InputHandler.isHoldingForwards(player)) {
@@ -143,9 +145,9 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack));
-        double stored = energy.getCapacity() - energy.getAmount();
-        return (int) Math.round(13.0F - (stored / energy.getCapacity()) * 13.0F);
+        long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+        long capacity = (long) this.jetpack.capacity;
+        return (int) Math.round(13.0F - ((double)(capacity - stored) / capacity) * 13.0F);
     }
 
     @Override
@@ -157,8 +159,8 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag advanced) {
         if (!this.jetpack.creative) {
-            EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack));
-            tooltip.add(Component.literal(UnitUtils.formatEnergy(energy.getAmount(), null)).withStyle(ChatFormatting.GRAY).append(" / ").append(Component.literal(UnitUtils.formatEnergy(jetpack.capacity, null))));
+            long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+            tooltip.add(Component.literal(UnitUtils.formatEnergy(stored, null)));
         } else {
             tooltip.add(Component.literal("-1 E / ").withStyle(ChatFormatting.GRAY).append(ModTooltips.INFINITE.color(ChatFormatting.GRAY)).append(" E"));
         }
@@ -233,6 +235,48 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
         CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
         boolean current = tag.contains("Hover") && tag.getBoolean("Hover");
         tag.putBoolean("Hover", !current);
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        return !current;
+    }
+
+    public double getThrottle(ItemStack stack) {
+        if (!stack.has(DataComponents.CUSTOM_DATA)) return 1.0;
+        CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+        return tag.contains("Throttle") ? tag.getDouble("Throttle") : 1.0;
+    }
+
+    public double incrementThrottle(ItemStack stack) {
+        CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
+        double throttle = tag.contains("Throttle") ? tag.getDouble("Throttle") : 1.0;
+        if (throttle < 1.0) {
+            throttle = Math.min(throttle + 0.2, 1.0);
+            tag.putDouble("Throttle", throttle);
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
+        return throttle;
+    }
+
+    public double decrementThrottle(ItemStack stack) {
+        CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
+        double throttle = tag.contains("Throttle") ? tag.getDouble("Throttle") : 1.0;
+        if (throttle > 0.2) {
+            throttle = Math.max(throttle - 0.2, 0.2);
+            tag.putDouble("Throttle", throttle);
+            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        }
+        return throttle;
+    }
+
+    public boolean isHUDEnabled(ItemStack stack) {
+        if (!stack.has(DataComponents.CUSTOM_DATA)) return true;
+        CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
+        return !tag.contains("HUD") || tag.getBoolean("HUD");
+    }
+
+    public boolean toggleHUD(ItemStack stack) {
+        CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
+        boolean current = !tag.contains("HUD") || tag.getBoolean("HUD");
+        tag.putBoolean("HUD", !current);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return !current;
     }

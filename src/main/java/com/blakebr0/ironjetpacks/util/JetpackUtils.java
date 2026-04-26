@@ -3,7 +3,6 @@ package com.blakebr0.ironjetpacks.util;
 import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
-import com.blakebr0.ironjetpacks.item.storage.ItemSlotStorage;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

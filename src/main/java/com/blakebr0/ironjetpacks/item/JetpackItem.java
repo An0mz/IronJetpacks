@@ -85,9 +85,7 @@ public class JetpackItem extends Item implements Colored, Enableable {
                             if (stored >= usageLong) {
                                 SimpleEnergyItem.setStoredEnergyUnchecked(chest, stored - usageLong);
                                 if (player instanceof ServerPlayer serverPlayer) {
-                                    serverPlayer.connection.send(new ClientboundSetEquipmentPacket(
-                                            serverPlayer.getId(), List.of(Pair.of(EquipmentSlot.CHEST, chest))
-                                    ));
+                                    serverPlayer.inventoryMenu.broadcastChanges();
                                 }
                                 canFly = true;
                             }

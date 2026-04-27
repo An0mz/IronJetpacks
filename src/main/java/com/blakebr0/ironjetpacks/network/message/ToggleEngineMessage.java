@@ -24,6 +24,7 @@ public class ToggleEngineMessage {
                 Item item = stack.getItem();
                 if (item instanceof JetpackItem jetpack) {
                     jetpack.toggleEngine(stack);
+                    player.inventoryMenu.broadcastChanges();
                 }
             }
         });

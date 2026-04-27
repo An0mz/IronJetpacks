@@ -7,11 +7,10 @@ import com.blakebr0.ironjetpacks.util.UnitUtils;
 import com.mojang.blaze3d.platform.Window;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
-import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.base.SimpleEnergyItem;
 
 @Environment(EnvType.CLIENT)
 public class HudHelper {
@@ -19,7 +18,7 @@ public class HudHelper {
         Window window = Minecraft.getInstance().getWindow();
         int xOffset = ModConfigs.getClient().hud.hudOffsetX;
         int yOffset = ModConfigs.getClient().hud.hudOffsetY;
-        
+
         switch (ModConfigs.getClient().hud.hudPosition) {
             case 0:
                 return new HudPos(10 + xOffset, 30 + yOffset, 0);
@@ -34,33 +33,32 @@ public class HudHelper {
             case 5:
                 return new HudPos(window.getGuiScaledWidth() - 8 - xOffset, window.getGuiScaledHeight() - 30 + yOffset, 1);
         }
-        
+
         return null;
     }
-    
+
     public static int getEnergyBarScaled(JetpackItem jetpack, ItemStack stack) {
         if (jetpack.getJetpack().creative) return 156;
-        EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack));
-        double i = energy.getAmount();
-        double j = energy.getCapacity();
-        return (int) (j != 0 && i != 0 ? (long) i * 156 / j : 0);
+        long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+        long capacity = (long) jetpack.getJetpack().capacity;
+        return (int) (capacity != 0 && stored != 0 ? stored * 156 / capacity : 0);
     }
-    
+
     public static String getFuel(JetpackItem jetpack, ItemStack stack) {
         if (jetpack.getJetpack().creative) return ModTooltips.INFINITE.asFormattedString() + ChatFormatting.GRAY + " E";
-        double number = EnergyStorage.ITEM.find(stack, ContainerItemContext.withConstant(stack)).getAmount();
-        return UnitUtils.formatEnergy(number, ChatFormatting.GRAY);
+        long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+        return UnitUtils.formatEnergy(stored, ChatFormatting.GRAY);
     }
-    
+
     public static String getOn(boolean on) {
         return on ? ModTooltips.ON.color(ChatFormatting.GREEN).getString() : ModTooltips.OFF.color(ChatFormatting.RED).getString();
     }
-    
+
     public static class HudPos {
         public int x;
         public int y;
         public int side;
-        
+
         public HudPos(int x, int y, int side) {
             this.x = x;
             this.y = y;

@@ -24,6 +24,7 @@ public class ToggleHoverMessage {
                 Item item = stack.getItem();
                 if (item instanceof JetpackItem jetpack) {
                     jetpack.toggleHover(stack);
+                    player.inventoryMenu.broadcastChanges();
                 }
             }
         });

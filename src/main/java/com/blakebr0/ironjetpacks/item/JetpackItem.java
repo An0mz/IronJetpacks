@@ -3,6 +3,7 @@ package com.blakebr0.ironjetpacks.item;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.lib.ModTooltips;
+import com.blakebr0.ironjetpacks.mixins.LivingEntityEquipmentAccessor;
 import com.blakebr0.ironjetpacks.mixins.ServerPlayNetworkHandlerAccessor;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
@@ -12,6 +13,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.ChatFormatting;
+import net.minecraft.util.Mth;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
@@ -155,6 +157,13 @@ public class JetpackItem extends Item implements Colored, Enableable {
     }
 
     @Override
+    public int getBarColor(ItemStack stack) {
+        long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+        float f = Math.max(0.0F, (float) stored / (float) this.jetpack.capacity);
+        return Mth.hsvToRgb(f / 3.0F, 1.0F, 1.0F);
+    }
+
+    @Override
     public boolean isBarVisible(ItemStack stack) {
         return !this.jetpack.creative;
     }
@@ -164,7 +173,8 @@ public class JetpackItem extends Item implements Colored, Enableable {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag advanced) {
         if (!this.jetpack.creative) {
             long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
-            tooltip.accept(Component.literal(UnitUtils.formatEnergy(stored, null)));
+            long capacity = (long) this.jetpack.capacity;
+            tooltip.accept(Component.literal(UnitUtils.formatEnergy(stored, null) + " / " + UnitUtils.formatEnergy(capacity, null)).withStyle(ChatFormatting.GRAY));
         } else {
             tooltip.accept(Component.literal("-1 E / ").withStyle(ChatFormatting.GRAY).append(ModTooltips.INFINITE.color(ChatFormatting.GRAY)).append(" E"));
         }

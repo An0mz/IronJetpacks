@@ -44,7 +44,7 @@ public class KeyBindingsHandler {
     
     public static void onClientSetup() {
         keyEngine = create("engine", GLFW.GLFW_KEY_V, IronJetpacks.NAME);
-        keyHover = create("hover", GLFW.GLFW_KEY_G, IronJetpacks.NAME);
+        keyHover = create("hover", GLFW.GLFW_KEY_H, IronJetpacks.NAME);
         keyHUD = create("hud", InputConstants.UNKNOWN.getValue(), IronJetpacks.NAME);
         keyDescend = create("descend", InputConstants.UNKNOWN.getValue(), IronJetpacks.NAME);
         keyIncrementThrottle = create("increment_throttle", GLFW.GLFW_KEY_PERIOD, IronJetpacks.NAME);

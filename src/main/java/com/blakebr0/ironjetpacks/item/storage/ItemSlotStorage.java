@@ -1,5 +1,6 @@
 package com.blakebr0.ironjetpacks.item.storage;
 
+import com.blakebr0.ironjetpacks.mixins.LivingEntityEquipmentAccessor;
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
@@ -30,7 +31,7 @@ public class ItemSlotStorage extends SingleStackStorage {
         if (entity instanceof Player player && isArmorSlot()) {
             // Directly update the armor list to avoid triggering the equip sound,
             // which fires every tick when the energy component changes.
-            player.getInventory().armor.set(slot.getIndex(), stack);
+            ((LivingEntityEquipmentAccessor) player).getEquipment().set(slot, stack);
             // Manually sync the updated stack to the client.
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetEquipmentPacket(

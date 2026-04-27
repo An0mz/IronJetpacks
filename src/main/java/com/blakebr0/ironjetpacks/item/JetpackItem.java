@@ -8,14 +8,16 @@ import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
 import com.mojang.datafixers.util.Pair;
-import dev.architectury.extensions.ItemExtension;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
@@ -30,12 +32,17 @@ import team.reborn.energy.api.EnergyStorage;
 import team.reborn.energy.api.base.SimpleEnergyItem;
 
 import java.util.List;
+import java.util.function.Consumer;
 
-public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemExtension {
+public class JetpackItem extends Item implements Colored, Enableable {
     private final Jetpack jetpack;
 
     public JetpackItem(Jetpack jetpack, Properties settings) {
-        super(JetpackUtils.makeArmorMaterial(jetpack), ArmorType.CHESTPLATE, settings.durability(0).rarity(jetpack.rarity));
+        super(settings.durability(0).rarity(jetpack.rarity)
+            .component(DataComponents.ATTRIBUTE_MODIFIERS, JetpackUtils.makeArmorMaterial(jetpack).createAttributes(ArmorType.CHESTPLATE))
+            .component(DataComponents.EQUIPPABLE, Equippable.builder(EquipmentSlot.CHEST)
+                .setEquipSound(SoundEvents.ARMOR_EQUIP_GENERIC)
+                .build()));
         this.jetpack = jetpack;
     }
 
@@ -50,7 +57,6 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
      * Credit to Tonius & Tomson124
      * https://github.com/Tomson124/SimplyJetpacks-2/blob/1.12/src/main/java/tonius/simplyjetpacks/item/rewrite/ItemJetpack.java
      */
-    @Override
     public void tickArmor(ItemStack stack, Player player) {
         ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
         Item item = chest.getItem();
@@ -157,33 +163,33 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
 
     @Environment(EnvType.CLIENT)
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag advanced) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag advanced) {
         if (!this.jetpack.creative) {
             long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
-            tooltip.add(Component.literal(UnitUtils.formatEnergy(stored, null)));
+            tooltip.accept(Component.literal(UnitUtils.formatEnergy(stored, null)));
         } else {
-            tooltip.add(Component.literal("-1 E / ").withStyle(ChatFormatting.GRAY).append(ModTooltips.INFINITE.color(ChatFormatting.GRAY)).append(" E"));
+            tooltip.accept(Component.literal("-1 E / ").withStyle(ChatFormatting.GRAY).append(ModTooltips.INFINITE.color(ChatFormatting.GRAY)).append(" E"));
         }
 
         Component tier = ModTooltips.TIER.args(this.jetpack.creative ? "Creative" : this.jetpack.tier).withStyle(this.jetpack.rarity.color());
         Component engine = ModTooltips.ENGINE.color(isEngineOn(stack) ? ChatFormatting.GREEN : ChatFormatting.RED);
         Component hover = ModTooltips.HOVER.color(isHovering(stack) ? ChatFormatting.GREEN : ChatFormatting.RED);
 
-        tooltip.add(ModTooltips.STATE_TOOLTIP_LAYOUT.args(tier, engine, hover));
+        tooltip.accept(ModTooltips.STATE_TOOLTIP_LAYOUT.args(tier, engine, hover));
 
         if (ModConfigs.getClient().general.enableAdvancedInfoTooltips) {
-            tooltip.add(Component.literal(""));
+            tooltip.accept(Component.literal(""));
             if (!Screen.hasShiftDown()) {
-                tooltip.add(Component.translatable("tooltip.iron-jetpacks.hold_shift_for_info"));
+                tooltip.accept(Component.translatable("tooltip.iron-jetpacks.hold_shift_for_info"));
             } else {
-                tooltip.add(ModTooltips.FUEL_USAGE.args(this.jetpack.usage + " E/t"));
-                tooltip.add(ModTooltips.VERTICAL_SPEED.args(this.jetpack.speedVert));
-                tooltip.add(ModTooltips.VERTICAL_ACCELERATION.args(this.jetpack.accelVert));
-                tooltip.add(ModTooltips.HORIZONTAL_SPEED.args(this.jetpack.speedSide));
-                tooltip.add(ModTooltips.HOVER_SPEED.args(this.jetpack.speedHoverSlow));
-                tooltip.add(ModTooltips.DESCEND_SPEED.args(this.jetpack.speedHover));
-                tooltip.add(ModTooltips.SPRINT_MODIFIER.args(this.jetpack.sprintSpeed));
-                tooltip.add(ModTooltips.SPRINT_FUEL_MODIFIER.args(this.jetpack.sprintFuel));
+                tooltip.accept(ModTooltips.FUEL_USAGE.args(this.jetpack.usage + " E/t"));
+                tooltip.accept(ModTooltips.VERTICAL_SPEED.args(this.jetpack.speedVert));
+                tooltip.accept(ModTooltips.VERTICAL_ACCELERATION.args(this.jetpack.accelVert));
+                tooltip.accept(ModTooltips.HORIZONTAL_SPEED.args(this.jetpack.speedSide));
+                tooltip.accept(ModTooltips.HOVER_SPEED.args(this.jetpack.speedHoverSlow));
+                tooltip.accept(ModTooltips.DESCEND_SPEED.args(this.jetpack.speedHover));
+                tooltip.accept(ModTooltips.SPRINT_MODIFIER.args(this.jetpack.sprintSpeed));
+                tooltip.accept(ModTooltips.SPRINT_FUEL_MODIFIER.args(this.jetpack.sprintFuel));
             }
         }
     }
@@ -214,12 +220,12 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
     public boolean isEngineOn(ItemStack stack) {
         if (!stack.has(DataComponents.CUSTOM_DATA)) return false;
         CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
-        return tag.contains("Engine") && tag.getBoolean("Engine");
+        return tag.contains("Engine") && tag.getBoolean("Engine").orElse(false);
     }
 
     public boolean toggleEngine(ItemStack stack) {
         CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
-        boolean current = tag.contains("Engine") && tag.getBoolean("Engine");
+        boolean current = tag.contains("Engine") && tag.getBoolean("Engine").orElse(false);
         tag.putBoolean("Engine", !current);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return !current;
@@ -228,12 +234,12 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
     public boolean isHovering(ItemStack stack) {
         if (!stack.has(DataComponents.CUSTOM_DATA)) return false;
         CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
-        return tag.contains("Hover") && tag.getBoolean("Hover");
+        return tag.contains("Hover") && tag.getBoolean("Hover").orElse(false);
     }
 
     public boolean toggleHover(ItemStack stack) {
         CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
-        boolean current = tag.contains("Hover") && tag.getBoolean("Hover");
+        boolean current = tag.contains("Hover") && tag.getBoolean("Hover").orElse(false);
         tag.putBoolean("Hover", !current);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return !current;
@@ -242,12 +248,12 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
     public double getThrottle(ItemStack stack) {
         if (!stack.has(DataComponents.CUSTOM_DATA)) return 1.0;
         CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
-        return tag.contains("Throttle") ? tag.getDouble("Throttle") : 1.0;
+        return tag.contains("Throttle") ? tag.getDouble("Throttle").orElse(1.0) : 1.0;
     }
 
     public double incrementThrottle(ItemStack stack) {
         CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
-        double throttle = tag.contains("Throttle") ? tag.getDouble("Throttle") : 1.0;
+        double throttle = tag.contains("Throttle") ? tag.getDouble("Throttle").orElse(1.0) : 1.0;
         if (throttle < 1.0) {
             throttle = Math.min(throttle + 0.2, 1.0);
             tag.putDouble("Throttle", throttle);
@@ -258,7 +264,7 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
 
     public double decrementThrottle(ItemStack stack) {
         CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
-        double throttle = tag.contains("Throttle") ? tag.getDouble("Throttle") : 1.0;
+        double throttle = tag.contains("Throttle") ? tag.getDouble("Throttle").orElse(1.0) : 1.0;
         if (throttle > 0.2) {
             throttle = Math.max(throttle - 0.2, 0.2);
             tag.putDouble("Throttle", throttle);
@@ -270,12 +276,12 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
     public boolean isHUDEnabled(ItemStack stack) {
         if (!stack.has(DataComponents.CUSTOM_DATA)) return true;
         CompoundTag tag = stack.get(DataComponents.CUSTOM_DATA).copyTag();
-        return !tag.contains("HUD") || tag.getBoolean("HUD");
+        return !tag.contains("HUD") || tag.getBoolean("HUD").orElse(true);
     }
 
     public boolean toggleHUD(ItemStack stack) {
         CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
-        boolean current = !tag.contains("HUD") || tag.getBoolean("HUD");
+        boolean current = !tag.contains("HUD") || tag.getBoolean("HUD").orElse(true);
         tag.putBoolean("HUD", !current);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         return !current;

@@ -18,10 +18,13 @@ import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -87,5 +90,14 @@ public class IronJetpacks implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> InputHandler.clear());
         PlayerEvent.CHANGE_DIMENSION.register((player, oldLevel, newLevel) -> InputHandler.onChangeDimension(player));
         PlayerEvent.PLAYER_QUIT.register(InputHandler::onLogout);
+
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+                if (!chest.isEmpty() && chest.getItem() instanceof JetpackItem jetpackItem) {
+                    jetpackItem.tickArmor(chest, player);
+                }
+            }
+        });
     }
 }

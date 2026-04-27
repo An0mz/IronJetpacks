@@ -26,6 +26,9 @@ public class JetpackClientHandler {
             if (!mc.isPaused()) {
                 ItemStack chest = mc.player.getItemBySlot(EquipmentSlot.CHEST);
                 Item item = chest.getItem();
+                if (!chest.isEmpty() && item instanceof JetpackItem jetpackItem) {
+                    jetpackItem.tickArmor(chest, mc.player);
+                }
                 if (!chest.isEmpty() && item instanceof JetpackItem && JetpackUtils.isFlying(mc.player)) {
                     if (ModConfigs.getClient().general.enableJetpackParticles && (mc.options.particles().get() != ParticleStatus.MINIMAL)) {
                         Jetpack jetpack = ((JetpackItem) item).getJetpack();

@@ -27,6 +27,6 @@
     "fabric": "*",
     "architectury": "*",
     "cloth-config": "*",
-    "minecraft": ">=1.19"
+    "minecraft": ">=1.21"
   }
 }

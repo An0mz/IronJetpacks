@@ -7,18 +7,15 @@ import com.blakebr0.ironjetpacks.mixins.ServerPlayNetworkHandlerAccessor;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
-import com.mojang.datafixers.util.Pair;
 import dev.architectury.extensions.ItemExtension;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -79,9 +76,7 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
                             if (stored >= usageLong) {
                                 SimpleEnergyItem.setStoredEnergyUnchecked(chest, stored - usageLong);
                                 if (player instanceof ServerPlayer serverPlayer) {
-                                    serverPlayer.connection.send(new ClientboundSetEquipmentPacket(
-                                            serverPlayer.getId(), List.of(Pair.of(EquipmentSlot.CHEST, chest))
-                                    ));
+                                    serverPlayer.inventoryMenu.broadcastChanges();
                                 }
                                 canFly = true;
                             }

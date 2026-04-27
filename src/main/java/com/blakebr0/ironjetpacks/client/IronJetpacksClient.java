@@ -21,6 +21,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -48,20 +49,44 @@ public class IronJetpacksClient {
                 private JetpackModel model;
 
                 @Override
-                public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, HumanoidRenderState humanoidRenderState, EquipmentSlot equipmentSlot, int i, HumanoidModel<HumanoidRenderState> humanoidModel) {
-                    int colorTint = jetpack.item.get().getColorTint(1);
+                public void render(PoseStack matrices, SubmitNodeCollector orderedRenderCommandQueue, ItemStack stack,
+                                   HumanoidRenderState bipedEntityRenderState, EquipmentSlot slot, int light,
+                                   HumanoidModel<HumanoidRenderState> contextModel) {
+                    int colorTint = jetpack.item.get().getColorTint(0);
                     float r = (float) (colorTint >> 16 & 255) / 255.0F;
                     float g = (float) (colorTint >> 8 & 255) / 255.0F;
                     float b = (float) (colorTint & 255) / 255.0F;
                     int color = (255 << 24) | ((int)(r * 255) << 16) | ((int)(g * 255) << 8) | (int)(b * 255);
+
                     JetpackModel model = getModel();
-                    humanoidModel.copyPropertiesTo(model);
-                    model.setCurrentItemStack(itemStack);
-                    model.setupAnim(humanoidRenderState);
-                    VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(multiBufferSource, RenderType.armorCutoutNoCull(JETPACK_TEXTURE), itemStack.hasFoil());
-                    model.renderToBuffer(poseStack, vertexConsumer, i, OverlayTexture.NO_OVERLAY, color);
-                    vertexConsumer = ItemRenderer.getArmorFoilBuffer(multiBufferSource, RenderType.armorCutoutNoCull(JETPACK_OVERLAY_TEXTURE), itemStack.hasFoil());
-                    model.renderToBuffer(poseStack, vertexConsumer, i, OverlayTexture.NO_OVERLAY, -1);
+                    model.setCurrentItemStack(stack);
+                    model.setupAnim(bipedEntityRenderState);
+
+                    orderedRenderCommandQueue.submitModel(
+                            model,
+                            bipedEntityRenderState,
+                            matrices,
+                            RenderType.armorCutoutNoCull(JETPACK_TEXTURE),
+                            light,                    // i = packed lightmap
+                            OverlayTexture.NO_OVERLAY, // j = overlay
+                            color,                    // k = color tint
+                            null,                     // TextureAtlasSprite
+                            0,                        // l = extra int (flags/layer index)
+                            null                      // CrumblingOverlay
+                    );
+
+                    orderedRenderCommandQueue.submitModel(
+                            model,
+                            bipedEntityRenderState,
+                            matrices,
+                            RenderType.armorCutoutNoCull(JETPACK_OVERLAY_TEXTURE),
+                            light,
+                            OverlayTexture.NO_OVERLAY,
+                            -1,
+                            null,
+                            0,
+                            null
+                    );
                 }
 
                 private JetpackModel getModel() {

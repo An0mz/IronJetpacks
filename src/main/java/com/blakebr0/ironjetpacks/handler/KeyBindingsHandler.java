@@ -50,9 +50,11 @@ public class KeyBindingsHandler {
         keyIncrementThrottle = create("increment_throttle", GLFW.GLFW_KEY_PERIOD, IronJetpacks.NAME);
         keyDecrementThrottle = create("decrement_throttle", GLFW.GLFW_KEY_COMMA, IronJetpacks.NAME);
     }
-    
+
     private static KeyMapping create(String id, int key, String category) {
-        return KeyBindingHelper.registerKeyBinding(new KeyMapping("key." + IronJetpacks.MOD_ID + "." + id, InputConstants.Type.KEYSYM, key, category));
+        return KeyBindingHelper.registerKeyBinding(new KeyMapping("key." + IronJetpacks.MOD_ID + "." + id,
+                InputConstants.Type.KEYSYM, key,
+                KeyMapping.Category.MISC));
     }
     
     public static void onClientTick(Minecraft client) {

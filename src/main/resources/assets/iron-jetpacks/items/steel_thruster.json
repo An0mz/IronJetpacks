@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "iron-jetpacks:item/steel_thruster",
+    "tints": [
+      {"type": "iron-jetpacks:colored"}
+    ]
+  }
+}

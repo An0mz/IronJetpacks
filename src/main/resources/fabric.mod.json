@@ -19,6 +19,7 @@
       "com.blakebr0.ironjetpacks.compat.kubejs.KubeJSCompat"
     ]
   },
+  "accessWidener": "iron-jetpacks.accesswidener",
   "mixins": [
     "iron-jetpacks.mixin.json"
   ],

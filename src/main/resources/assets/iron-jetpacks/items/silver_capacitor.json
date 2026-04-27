@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "iron-jetpacks:item/silver_capacitor",
+    "tints": [
+      {"type": "iron-jetpacks:colored"}
+    ]
+  }
+}

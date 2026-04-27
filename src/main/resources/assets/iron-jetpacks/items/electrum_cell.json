@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "iron-jetpacks:item/electrum_cell",
+    "tints": [
+      {"type": "iron-jetpacks:colored"}
+    ]
+  }
+}

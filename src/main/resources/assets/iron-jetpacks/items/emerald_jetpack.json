@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "iron-jetpacks:item/emerald_jetpack",
+    "tints": [
+      {"type": "iron-jetpacks:colored"}
+    ]
+  }
+}

@@ -4,10 +4,8 @@ import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
@@ -17,6 +15,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.equipment.EquipmentAsset;
+import net.minecraft.world.item.equipment.EquipmentAssets;
 import team.reborn.energy.api.base.SimpleEnergyItem;
 
 import java.util.EnumMap;
@@ -49,14 +49,14 @@ public class JetpackUtils {
             defenses.put(type, type == ArmorType.CHESTPLATE ? jetpack.armorPoints : 0);
         }
         return new ArmorMaterial(
-            0,
-            defenses,
-            Math.max(1, jetpack.enchantablilty),
-            SoundEvents.ARMOR_EQUIP_GENERIC,
-            0.0f,
-            0.0f,
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "repairs_jetpack")),
-            ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "jetpack")
+                0,
+                defenses,
+                Math.max(1, jetpack.enchantablilty),
+                SoundEvents.ARMOR_EQUIP_GENERIC,
+                0.0f,
+                0.0f,
+                TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "repairs_jetpack")),
+                EquipmentAssets.LEATHER  // placeholder, jetpack uses custom rendering anyway
         );
     }
 }

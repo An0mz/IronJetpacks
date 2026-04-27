@@ -49,7 +49,7 @@ public class IronJetpacksClient {
 
                 @Override
                 public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, ItemStack itemStack, HumanoidRenderState humanoidRenderState, EquipmentSlot equipmentSlot, int i, HumanoidModel<HumanoidRenderState> humanoidModel) {
-                    int colorTint = jetpack.item.get().getColorTint(1);
+                    int colorTint = jetpack.item.get().getColorTint(0);
                     float r = (float) (colorTint >> 16 & 255) / 255.0F;
                     float g = (float) (colorTint >> 8 & 255) / 255.0F;
                     float b = (float) (colorTint & 255) / 255.0F;

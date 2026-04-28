@@ -8,7 +8,7 @@ import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -45,7 +45,7 @@ public class JetpackDynamicRecipeManager {
     }
 
     private static ResourceKey<Recipe<?>> recipeKey(String path) {
-        return ResourceKey.create(Registries.RECIPE, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, path));
+        return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, path));
     }
 
     private static ShapedRecipePattern toPattern(int width, int height, List<Optional<Ingredient>> inputs) {

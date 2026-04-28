@@ -5,14 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 
-public class KubeJSCompat implements Consumer<Map<RecipeType<?>, Map<ResourceLocation, Recipe<?>>>> {
+public class KubeJSCompat implements Consumer<Map<RecipeType<?>, Map<Identifier, Recipe<?>>>> {
     @Override
-    public void accept(Map<RecipeType<?>, Map<ResourceLocation, Recipe<?>>> recipeTypeMapMap) {
-        Map<ResourceLocation, Recipe<?>> builder = recipeTypeMapMap.computeIfAbsent(RecipeType.CRAFTING, recipeType -> new HashMap<>());
-        JetpackDynamicRecipeManager.appendRecipes((id, holder) -> builder.put(id.location(), holder.value()));
+    public void accept(Map<RecipeType<?>, Map<Identifier, Recipe<?>>> recipeTypeMapMap) {
+        Map<Identifier, Recipe<?>> builder = recipeTypeMapMap.computeIfAbsent(RecipeType.CRAFTING, recipeType -> new HashMap<>());
+        JetpackDynamicRecipeManager.appendRecipes((id, holder) -> builder.put(id.identifier(), holder.value()));
     }
 }

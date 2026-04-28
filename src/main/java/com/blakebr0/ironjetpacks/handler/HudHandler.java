@@ -13,14 +13,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 @Environment(EnvType.CLIENT)
 public class HudHandler {
-    private static final ResourceLocation HUD_TEXTURE = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "textures/gui/hud.png");
+    private static final Identifier HUD_TEXTURE = Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, "textures/gui/hud.png");
     
     public static void onRenderGameOverlay(GuiGraphics graphics, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();

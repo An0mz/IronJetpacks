@@ -7,7 +7,7 @@ import com.google.common.base.Suppliers;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
@@ -51,7 +51,7 @@ public class Jetpack {
         this.enchantablilty = enchantability;
         this.craftingMaterialString = craftingMaterialString;
         this.item = Suppliers.memoize(() -> {
-            ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, name + "_jetpack"));
+            ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, name + "_jetpack"));
             return new JetpackItem(this, new Item.Properties().setId(key));
         });
     }
@@ -126,11 +126,11 @@ public class Jetpack {
                 if (!this.craftingMaterialString.equalsIgnoreCase("null")) {
                     String[] parts = craftingMaterialString.split(":");
                     if (parts.length >= 3 && this.craftingMaterialString.startsWith("tag:")) {
-                        TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.parse(parts[1] + ":" + parts[2]));
+                        TagKey<Item> tag = TagKey.create(Registries.ITEM, Identifier.parse(parts[1] + ":" + parts[2]));
                         BuiltInRegistries.ITEM.get(tag).ifPresent(holderSet ->
                             this.craftingMaterial = Ingredient.of(holderSet));
                     } else if (parts.length >= 2) {
-                        BuiltInRegistries.ITEM.get(ResourceLocation.parse(parts[0] + ":" + parts[1]))
+                        BuiltInRegistries.ITEM.get(Identifier.parse(parts[0] + ":" + parts[1]))
                             .ifPresent(ref -> this.craftingMaterial = Ingredient.of(ref.value()));
                     }
                 }

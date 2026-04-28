@@ -4,11 +4,11 @@ import com.blakebr0.ironjetpacks.IronJetpacks;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record NetworkPayload(int messageId, FriendlyByteBuf data) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID_LOC = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, IronJetpacks.MOD_ID);
+    public static final Identifier ID_LOC = Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, IronJetpacks.MOD_ID);
     public static final Type<NetworkPayload> TYPE = new Type<>(ID_LOC);
 
     public static final StreamCodec<FriendlyByteBuf, NetworkPayload> CODEC = StreamCodec.of(

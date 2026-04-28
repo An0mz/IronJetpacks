@@ -6,7 +6,7 @@ import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -55,7 +55,7 @@ public class JetpackUtils {
                 SoundEvents.ARMOR_EQUIP_GENERIC,
                 0.0f,
                 0.0f,
-                TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "repairs_jetpack")),
+                TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, "repairs_jetpack")),
                 EquipmentAssets.LEATHER  // placeholder, jetpack uses custom rendering anyway
         );
     }

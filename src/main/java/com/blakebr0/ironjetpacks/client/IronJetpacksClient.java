@@ -10,7 +10,6 @@ import com.blakebr0.ironjetpacks.handler.KeyBindingsHandler;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.api.EnvType;
@@ -19,20 +18,18 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 
 @Environment(EnvType.CLIENT)
 public class IronJetpacksClient {
-    private static final ResourceLocation JETPACK_TEXTURE = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "textures/armor/jetpack.png");
-    private static final ResourceLocation JETPACK_OVERLAY_TEXTURE = ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, "textures/armor/jetpack_overlay.png");
+    private static final Identifier JETPACK_TEXTURE = Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, "textures/armor/jetpack.png");
+    private static final Identifier JETPACK_OVERLAY_TEXTURE = Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, "textures/armor/jetpack_overlay.png");
 
     public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(KeyBindingsHandler::onClientTick);
@@ -66,7 +63,7 @@ public class IronJetpacksClient {
                             model,
                             bipedEntityRenderState,
                             matrices,
-                            RenderType.armorCutoutNoCull(JETPACK_TEXTURE),
+                            RenderTypes.armorCutoutNoCull(JETPACK_TEXTURE),
                             light,                    // i = packed lightmap
                             OverlayTexture.NO_OVERLAY, // j = overlay
                             color,                    // k = color tint
@@ -79,7 +76,7 @@ public class IronJetpacksClient {
                             model,
                             bipedEntityRenderState,
                             matrices,
-                            RenderType.armorCutoutNoCull(JETPACK_OVERLAY_TEXTURE),
+                            RenderTypes.armorCutoutNoCull(JETPACK_OVERLAY_TEXTURE),
                             light,
                             OverlayTexture.NO_OVERLAY,
                             -1,

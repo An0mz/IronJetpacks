@@ -19,7 +19,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -38,7 +38,7 @@ public class IronJetpacks implements ModInitializer {
     public static final String MOD_ID = "iron-jetpacks";
     public static final String NAME = "Iron Jetpacks";
     
-    public static final CreativeModeTab ITEM_GROUP = FabricItemGroup.builder()
+    public static final CreativeModeTab ITEM_GROUP = FabricCreativeModeTab.builder()
             .title(Component.translatable("itemGroup.iron-jetpacks.iron-jetpacks"))
             .icon(() -> {
                 return new ItemStack(ModItems.STRAP.get());

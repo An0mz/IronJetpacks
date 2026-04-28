@@ -1,5 +1,5 @@
 plugins {
-    id 'net.fabricmc.fabric-loom-remap' version "1.16-SNAPSHOT"
+    id 'net.fabricmc.fabric-loom' version "1.16-SNAPSHOT"
     id 'maven-publish'
 }
 
@@ -24,17 +24,17 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${project.minecraft_version}")
-    mappings(loom.officialMojangMappings())
-    modImplementation("net.fabricmc:fabric-loader:${project.loader_version}")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
-    modApi("me.shedaniel.cloth:cloth-config-fabric:${project.clothconfig_version}") {
+
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    api("me.shedaniel.cloth:cloth-config-fabric:${project.clothconfig_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
-    modImplementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
+    /*implementation("me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}") {
         exclude(group: "net.fabricmc.fabric-api")
         exclude(group: "io.github.prospector")
-    }
-    modImplementation(include("teamreborn:energy:${project.tr_energy_version}"))
+    }*/
+    implementation(include("teamreborn:energy:${project.tr_energy_version}"))
     //modImplementation "dev.emi:trinkets:${trinkets_version}"
 }
 
@@ -47,7 +47,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 21
+    it.options.release = 25
 }
 
 jar {

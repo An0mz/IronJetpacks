@@ -6,7 +6,8 @@
   "description": "A fully customizable FE powered jetpacks mod!",
   "authors": [
     "BlakeBr0",
-    "shedaniel"
+    "shedaniel",
+    "Anomz"
   ],
   "license": "MIT",
   "icon": "assets/iron-jetpacks/icon.png",
@@ -24,10 +25,9 @@
     "iron-jetpacks.mixin.json"
   ],
   "depends": {
-    "fabricloader": ">=0.11.0",
+    "fabricloader": ">=0.18.0",
     "fabric": "*",
-    "architectury": "*",
     "cloth-config": "*",
-    "minecraft": ">=1.21"
+    "minecraft": ">=26.1"
   }
 }

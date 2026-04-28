@@ -10,7 +10,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.ItemLike;
@@ -72,8 +72,11 @@ public class JetpackDynamicRecipeManager {
         );
 
         ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_cell");
-        ItemStack output = new ItemStack(jetpack.cell);
-        return Map.entry(key, new ShapedRecipe("iron-jetpacks:cells", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new ShapedRecipe(
+                new Recipe.CommonInfo(true),
+                new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "iron-jetpacks:cells"),
+                toPattern(3, 3, inputs),
+                new ItemStackTemplate(jetpack.cell)));
     }
 
     private static Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> makeThrusterRecipe(Jetpack jetpack) {
@@ -97,8 +100,11 @@ public class JetpackDynamicRecipeManager {
         );
 
         ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_thruster");
-        ItemStack output = new ItemStack(jetpack.thruster);
-        return Map.entry(key, new ShapedRecipe("iron-jetpacks:thrusters", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new ShapedRecipe(
+                new Recipe.CommonInfo(true),
+                new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "iron-jetpacks:thrusters"),
+                toPattern(3, 3, inputs),
+                new ItemStackTemplate(jetpack.thruster)));
     }
 
     private static Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> makeCapacitorRecipe(Jetpack jetpack) {
@@ -117,8 +123,11 @@ public class JetpackDynamicRecipeManager {
         );
 
         ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_capacitor");
-        ItemStack output = new ItemStack(jetpack.capacitor);
-        return Map.entry(key, new ShapedRecipe("iron-jetpacks:capacitors", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new ShapedRecipe(
+                new Recipe.CommonInfo(true),
+                new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "iron-jetpacks:capacitors"),
+                toPattern(3, 3, inputs),
+                new ItemStackTemplate(jetpack.capacitor)));
     }
 
     private static Map.Entry<ResourceKey<Recipe<?>>, ShapedRecipe> makeJetpackRecipe(Jetpack jetpack) {
@@ -143,8 +152,11 @@ public class JetpackDynamicRecipeManager {
         );
 
         ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_jetpack");
-        ItemStack output = new ItemStack(jetpack.item.get());
-        return Map.entry(key, new ShapedRecipe("iron-jetpacks:jetpacks", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new ShapedRecipe(
+                new Recipe.CommonInfo(true),
+                new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "iron-jetpacks:jetpacks"),
+                toPattern(3, 3, inputs),
+                new ItemStackTemplate(jetpack.item.get())));
     }
 
     private static Map.Entry<ResourceKey<Recipe<?>>, JetpackUpgradeRecipe> makeJetpackUpgradeRecipe(Jetpack jetpack) {
@@ -171,7 +183,10 @@ public class JetpackDynamicRecipeManager {
         );
 
         ResourceKey<Recipe<?>> key = recipeKey(jetpack.name + "_jetpack");
-        ItemStack output = new ItemStack(jetpack.item.get());
-        return Map.entry(key, new JetpackUpgradeRecipe("iron-jetpacks:jetpacks", CraftingBookCategory.MISC, toPattern(3, 3, inputs), output));
+        return Map.entry(key, new JetpackUpgradeRecipe(
+                new Recipe.CommonInfo(true),
+                new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "iron-jetpacks:jetpacks"),
+                toPattern(3, 3, inputs),
+                new ItemStackTemplate(jetpack.item.get())));
     }
 }

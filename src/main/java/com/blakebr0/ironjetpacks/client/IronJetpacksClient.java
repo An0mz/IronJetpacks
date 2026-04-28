@@ -16,7 +16,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
@@ -33,7 +33,7 @@ public class IronJetpacksClient {
 
     public static void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(KeyBindingsHandler::onClientTick);
-        HudRenderCallback.EVENT.register(HudHandler::onRenderGameOverlay);
+        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, "jetpack_hud"), HudHandler::onRenderGameOverlay);
         ClientTickEvents.END_CLIENT_TICK.register(JetpackClientHandler::onClientTick);
 
         KeyBindingsHandler.onClientSetup();

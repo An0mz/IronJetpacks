@@ -10,7 +10,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
 public class HudHandler {
     private static final Identifier HUD_TEXTURE = Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, "textures/gui/hud.png");
     
-    public static void onRenderGameOverlay(GuiGraphics graphics, DeltaTracker deltaTracker) {
+    public static void onRenderGameOverlay(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) {
             if (ModConfigs.getClient().hud.enableHud && (ModConfigs.getClient().hud.showHudOverChat || !ModConfigs.getClient().hud.showHudOverChat && !(mc.screen instanceof ChatScreen)) && !mc.options.hideGui) {
@@ -48,15 +48,15 @@ public class HudHandler {
                         String hover = ChatFormatting.GRAY + "H: " + HudHelper.getOn(jetpack.isHovering(chest));
 
                         if (pos.side == 1) {
-                            graphics.drawString(mc.font, fuel, pos.x - 8 - mc.font.width(fuel), pos.y - 21, 0xFFFFFFFF);
-                            graphics.drawString(mc.font, throttle, pos.x - 8 - mc.font.width(throttle), pos.y - 6, 0xFFFFFFFF);
-                            graphics.drawString(mc.font, engine, pos.x - 8 - mc.font.width(engine), pos.y + 4, 0xFFFFFFFF);
-                            graphics.drawString(mc.font, hover, pos.x - 8 - mc.font.width(hover), pos.y + 14, 0xFFFFFFFF);
+                            graphics.text(mc.font, fuel, pos.x - 8 - mc.font.width(fuel), pos.y - 21, 0xFFFFFFFF);
+                            graphics.text(mc.font, throttle, pos.x - 8 - mc.font.width(throttle), pos.y - 6, 0xFFFFFFFF);
+                            graphics.text(mc.font, engine, pos.x - 8 - mc.font.width(engine), pos.y + 4, 0xFFFFFFFF);
+                            graphics.text(mc.font, hover, pos.x - 8 - mc.font.width(hover), pos.y + 14, 0xFFFFFFFF);
                         } else {
-                            graphics.drawString(mc.font, fuel, pos.x + 6, pos.y - 21, 0xFFFFFFFF);
-                            graphics.drawString(mc.font, throttle, pos.x + 6, pos.y - 6, 0xFFFFFFFF);
-                            graphics.drawString(mc.font, engine, pos.x + 6, pos.y + 4, 0xFFFFFFFF);
-                            graphics.drawString(mc.font, hover, pos.x + 6, pos.y + 14, 0xFFFFFFFF);
+                            graphics.text(mc.font, fuel, pos.x + 6, pos.y - 21, 0xFFFFFFFF);
+                            graphics.text(mc.font, throttle, pos.x + 6, pos.y - 6, 0xFFFFFFFF);
+                            graphics.text(mc.font, engine, pos.x + 6, pos.y + 4, 0xFFFFFFFF);
+                            graphics.text(mc.font, hover, pos.x + 6, pos.y + 14, 0xFFFFFFFF);
                         }
                     }
                 }

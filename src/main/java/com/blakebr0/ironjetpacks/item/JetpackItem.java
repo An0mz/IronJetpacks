@@ -11,6 +11,7 @@ import dev.architectury.extensions.ItemExtension;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
+import net.minecraft.util.Mth;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.equipment.ArmorType;
@@ -143,6 +144,13 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
         long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
         long capacity = (long) this.jetpack.capacity;
         return (int) Math.round(13.0F - ((double)(capacity - stored) / capacity) * 13.0F);
+    }
+
+    @Override
+    public int getBarColor(ItemStack stack) {
+        long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+        float f = Math.max(0.0F, (float) stored / (float) this.jetpack.capacity);
+        return Mth.hsvToRgb(f / 3.0F, 1.0F, 1.0F);
     }
 
     @Override

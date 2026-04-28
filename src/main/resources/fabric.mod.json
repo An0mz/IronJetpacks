@@ -23,10 +23,10 @@
     "iron-jetpacks.mixin.json"
   ],
   "depends": {
-    "fabricloader": ">=0.11.0",
+    "fabricloader": ">=0.15.0",
     "fabric": "*",
     "architectury": "*",
     "autoconfig1u": "*",
-    "minecraft": ">=1.19"
+    "minecraft": ">=1.21"
   }
 }

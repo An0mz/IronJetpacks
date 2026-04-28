@@ -9,6 +9,7 @@ group = project.maven_group
 base {
     archivesName = "[${project.minecraft_version}] ${project.archives_base_name}"
 }
+
 repositories {
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://maven.terraformersmc.com/releases/" }

@@ -6,6 +6,10 @@ plugins {
 version = project.mod_version
 group = project.maven_group
 
+base {
+    archivesName = "[${project.minecraft_version}] ${project.archives_base_name}"
+}
+
 loom {
     accessWidenerPath = file("src/main/resources/iron-jetpacks.accesswidener")
 }
@@ -35,7 +39,6 @@ dependencies {
         exclude(group: "io.github.prospector")
     }
     modImplementation(include("teamreborn:energy:${project.tr_energy_version}"))
-    //modImplementation "dev.emi:trinkets:${trinkets_version}"
 }
 
 processResources {

@@ -12,6 +12,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.minecraft.ChatFormatting;
+import net.minecraft.util.Mth;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
@@ -152,6 +153,13 @@ public class JetpackItem extends Item implements Colored, Enableable {
         long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
         long capacity = (long) this.jetpack.capacity;
         return (int) Math.round(13.0F - ((double)(capacity - stored) / capacity) * 13.0F);
+    }
+
+    @Override
+    public int getBarColor(ItemStack stack) {
+        long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+        float f = Math.max(0.0F, (float) stored / (float) this.jetpack.capacity);
+        return Mth.hsvToRgb(f / 3.0F, 1.0F, 1.0F);
     }
 
     @Override

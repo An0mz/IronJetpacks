@@ -24,7 +24,7 @@
     "iron-jetpacks.mixin.json"
   ],
   "depends": {
-    "fabricloader": ">=0.11.0",
+    "fabricloader": ">=0.16.0",
     "fabric": "*",
     "architectury": "*",
     "cloth-config": "*",

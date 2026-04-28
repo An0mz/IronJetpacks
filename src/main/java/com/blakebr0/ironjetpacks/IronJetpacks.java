@@ -22,11 +22,9 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -73,7 +71,7 @@ public class IronJetpacks implements ModInitializer {
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             if (success) JetpackRecipeInjector.inject(server);
         });
-        PayloadTypeRegistry.playC2S().register(NetworkPayload.TYPE, NetworkPayload.CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(NetworkPayload.TYPE, NetworkPayload.CODEC);
         NetworkHandler.onCommonSetup();
 
         AutoConfig.register(ModConfigs.Common.class, JanksonConfigSerializer::new);

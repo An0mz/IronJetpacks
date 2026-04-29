@@ -39,7 +39,7 @@ dependencies {
         exclude(group: "io.github.prospector")
     }*/
     implementation(include("teamreborn:energy:${project.tr_energy_version}"))
-    //modImplementation "dev.emi:trinkets:${trinkets_version}"
+    implementation(files("architectury-19.0.9999.jar"))
 }
 
 processResources {

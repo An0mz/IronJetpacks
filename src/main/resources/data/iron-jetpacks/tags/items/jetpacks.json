@@ -1,0 +1,19 @@
+{
+  "values": [
+    "iron-jetpacks:wood_jetpack",
+    "iron-jetpacks:stone_jetpack",
+    "iron-jetpacks:iron_jetpack",
+    "iron-jetpacks:gold_jetpack",
+    "iron-jetpacks:diamond_jetpack",
+    "iron-jetpacks:emerald_jetpack",
+    "iron-jetpacks:netherite_jetpack",
+    "iron-jetpacks:creative_jetpack",
+    "iron-jetpacks:copper_jetpack",
+    "iron-jetpacks:bronze_jetpack",
+    "iron-jetpacks:silver_jetpack",
+    "iron-jetpacks:steel_jetpack",
+    "iron-jetpacks:electrum_jetpack",
+    "iron-jetpacks:invar_jetpack",
+    "iron-jetpacks:platinum_jetpack"
+  ]
+}

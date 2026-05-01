@@ -9,6 +9,8 @@ import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.extensions.ItemExtension;
+import dev.emi.trinkets.api.SlotReference;
+import dev.emi.trinkets.api.Trinket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
@@ -22,6 +24,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.CustomData;
@@ -32,7 +35,7 @@ import team.reborn.energy.api.base.SimpleEnergyItem;
 
 import java.util.List;
 
-public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemExtension {
+public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemExtension, Trinket {
     private final Jetpack jetpack;
 
     public JetpackItem(Jetpack jetpack, Properties settings) {
@@ -46,6 +49,13 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
         return Component.translatable("item.iron-jetpacks.jetpack", name);
     }
 
+    // Called by Trinkets each tick when equipped in the back slot
+    @Override
+    public void tick(ItemStack stack, SlotReference slot, LivingEntity entity) {
+        if (!(entity instanceof Player player)) return;
+        this.performFlight(stack, player, () -> slot.inventory().markUpdate());
+    }
+
     /*
      * Jetpack logic is very much like Simply Jetpacks, since I used it to learn how to make this work
      * Credit to Tonius & Tomson124
@@ -53,87 +63,89 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
      */
     @Override
     public void tickArmor(ItemStack stack, Player player) {
-        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
-        Item item = chest.getItem();
-        if (!chest.isEmpty() && item instanceof JetpackItem) {
-            JetpackItem jetpack = (JetpackItem) item;
-            if (jetpack.isEngineOn(chest)) {
-                boolean hover = jetpack.isHovering(chest);
-                if (InputHandler.isHoldingUp(player) || hover && !player.onGround()) {
-                    Jetpack info = jetpack.getJetpack();
+        if (stack.getItem() instanceof JetpackItem jetpack) {
+            jetpack.performFlight(stack, player, () -> {
+                if (player instanceof ServerPlayer serverPlayer) {
+                    serverPlayer.connection.send(new ClientboundSetEquipmentPacket(
+                        serverPlayer.getId(), List.of(Pair.of(EquipmentSlot.CHEST, stack))
+                    ));
+                }
+            });
+        }
+    }
 
-                    double hoverSpeed = InputHandler.isHoldingDown(player) ? info.speedHover : info.speedHoverSlow;
-                    double currentAccel = info.accelVert * (player.getDeltaMovement().y() < 0.3D ? 2.5D : 1.0D);
-                    double currentSpeedVertical = info.speedVert * (player.isUnderWater() ? 0.4D : 1.0D);
+    private void performFlight(ItemStack stack, Player player, Runnable syncEnergy) {
+        if (!this.isEngineOn(stack)) return;
+        boolean hover = this.isHovering(stack);
+        if (InputHandler.isHoldingUp(player) || hover && !player.onGround()) {
+            Jetpack info = this.getJetpack();
 
-                    double usage = (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.usage * info.sprintFuel : info.usage;
+            double hoverSpeed = InputHandler.isHoldingDown(player) ? info.speedHover : info.speedHoverSlow;
+            double currentAccel = info.accelVert * (player.getDeltaMovement().y() < 0.3D ? 2.5D : 1.0D);
+            double currentSpeedVertical = info.speedVert * (player.isUnderWater() ? 0.4D : 1.0D);
 
-                    boolean creative = info.creative;
-                    boolean canFly = creative;
+            double usage = (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.usage * info.sprintFuel : info.usage;
 
-                    if (!creative) {
-                        long usageLong = (long) usage;
-                        if (player.level().isClientSide()) {
-                            canFly = SimpleEnergyItem.getStoredEnergyUnchecked(chest) >= usageLong;
+            boolean creative = info.creative;
+            boolean canFly = creative;
+
+            if (!creative) {
+                long usageLong = (long) usage;
+                if (player.level().isClientSide()) {
+                    canFly = SimpleEnergyItem.getStoredEnergyUnchecked(stack) >= usageLong;
+                } else {
+                    long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+                    if (stored >= usageLong) {
+                        SimpleEnergyItem.setStoredEnergyUnchecked(stack, stored - usageLong);
+                        syncEnergy.run();
+                        canFly = true;
+                    }
+                }
+            }
+
+            if (canFly) {
+                double motionY = player.getDeltaMovement().y();
+                double throttle = this.getThrottle(stack);
+                double vertSprintMulti = motionY >= 0 && (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.sprintSpeedVert : 1.0D;
+
+                if (InputHandler.isHoldingUp(player)) {
+                    if (!hover) {
+                        this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical) * throttle * vertSprintMulti);
+                    } else {
+                        if (InputHandler.isHoldingDown(player)) {
+                            this.fly(player, Math.min(motionY + currentAccel, -info.speedHoverSlow));
                         } else {
-                            long stored = SimpleEnergyItem.getStoredEnergyUnchecked(chest);
-                            if (stored >= usageLong) {
-                                SimpleEnergyItem.setStoredEnergyUnchecked(chest, stored - usageLong);
-                                if (player instanceof ServerPlayer serverPlayer) {
-                                    serverPlayer.connection.send(new ClientboundSetEquipmentPacket(
-                                        serverPlayer.getId(), List.of(Pair.of(EquipmentSlot.CHEST, chest))
-                                    ));
-                                }
-                                canFly = true;
-                            }
+                            this.fly(player, Math.min(motionY + currentAccel, info.speedHoverAscend) * throttle * vertSprintMulti);
                         }
                     }
+                } else {
+                    this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
+                }
 
-                    if (canFly) {
-                        double motionY = player.getDeltaMovement().y();
-                            double throttle = jetpack.getThrottle(chest);
-                            double vertSprintMulti = motionY >= 0 && (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.sprintSpeedVert : 1.0D;
+                float speedSideways = (float) ((player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide) * throttle);
+                float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
 
-                            if (InputHandler.isHoldingUp(player)) {
-                                if (!hover) {
-                                    this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical) * throttle * vertSprintMulti);
-                                } else {
-                                    if (InputHandler.isHoldingDown(player)) {
-                                        this.fly(player, Math.min(motionY + currentAccel, -info.speedHoverSlow));
-                                    } else {
-                                        this.fly(player, Math.min(motionY + currentAccel, info.speedHoverAscend) * throttle * vertSprintMulti);
-                                    }
-                                }
-                            } else {
-                                this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
-                            }
+                if (InputHandler.isHoldingForwards(player)) {
+                    player.moveRelative(1, new Vec3(0, 0, speedForward));
+                }
 
-                            float speedSideways = (float) ((player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide) * throttle);
-                            float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
+                if (InputHandler.isHoldingBackwards(player)) {
+                    player.moveRelative(1, new Vec3(0, 0, -speedSideways * 0.8F));
+                }
 
-                            if (InputHandler.isHoldingForwards(player)) {
-                                player.moveRelative(1, new Vec3(0, 0, speedForward));
-                            }
+                if (InputHandler.isHoldingLeft(player)) {
+                    player.moveRelative(1, new Vec3(speedSideways, 0, 0));
+                }
 
-                            if (InputHandler.isHoldingBackwards(player)) {
-                                player.moveRelative(1, new Vec3(0, 0, -speedSideways * 0.8F));
-                            }
+                if (InputHandler.isHoldingRight(player)) {
+                    player.moveRelative(1, new Vec3(-speedSideways, 0, 0));
+                }
 
-                            if (InputHandler.isHoldingLeft(player)) {
-                                player.moveRelative(1, new Vec3(speedSideways, 0, 0));
-                            }
+                if (!player.level().isClientSide()) {
+                    player.fallDistance = 0.0F;
 
-                            if (InputHandler.isHoldingRight(player)) {
-                                player.moveRelative(1, new Vec3(-speedSideways, 0, 0));
-                            }
-
-                            if (!player.level().isClientSide()) {
-                                player.fallDistance = 0.0F;
-
-                                if (player instanceof ServerPlayer) {
-                                    ((ServerPlayNetworkHandlerAccessor) ((ServerPlayer) player).connection).setFloatingTicks(0);
-                                }
-                            }
+                    if (player instanceof ServerPlayer) {
+                        ((ServerPlayNetworkHandlerAccessor) ((ServerPlayer) player).connection).setFloatingTicks(0);
                     }
                 }
             }

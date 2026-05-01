@@ -4,6 +4,7 @@ import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
+import dev.emi.trinkets.api.TrinketsApi;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -19,26 +20,31 @@ import java.util.List;
 import java.util.Map;
 
 public class JetpackUtils {
+    public static ItemStack getJetpackStack(Player player) {
+        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+        if (!chest.isEmpty() && chest.getItem() instanceof JetpackItem) {
+            return chest;
+        }
+        return TrinketsApi.getTrinketComponent(player)
+            .map(c -> {
+                var equipped = c.getEquipped(s -> s.getItem() instanceof JetpackItem);
+                return equipped.isEmpty() ? ItemStack.EMPTY : equipped.get(0).getB();
+            })
+            .orElse(ItemStack.EMPTY);
+    }
+
     public static boolean isFlying(Player player) {
-        ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
-        if (!stack.isEmpty()) {
-            Item item = stack.getItem();
-            if (item instanceof JetpackItem jetpack) {
-                Jetpack info = jetpack.getJetpack();
-                boolean hasEnergy = info.creative || player.isCreative();
-                if (!hasEnergy) {
-                    hasEnergy = team.reborn.energy.api.base.SimpleEnergyItem.getStoredEnergyUnchecked(stack) >= (long) info.usage;
-                }
-                if (jetpack.isEngineOn(stack) && hasEnergy) {
-                    if (jetpack.isHovering(stack)) {
-                        return !player.onGround();
-                    } else {
-                        return InputHandler.isHoldingUp(player);
-                    }
-                }
+        ItemStack stack = getJetpackStack(player);
+        if (!stack.isEmpty() && stack.getItem() instanceof JetpackItem jetpack) {
+            Jetpack info = jetpack.getJetpack();
+            boolean hasEnergy = info.creative || player.isCreative();
+            if (!hasEnergy) {
+                hasEnergy = team.reborn.energy.api.base.SimpleEnergyItem.getStoredEnergyUnchecked(stack) >= (long) info.usage;
+            }
+            if (jetpack.isEngineOn(stack) && hasEnergy) {
+                return jetpack.isHovering(stack) ? !player.onGround() : InputHandler.isHoldingUp(player);
             }
         }
-
         return false;
     }
 

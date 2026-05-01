@@ -11,7 +11,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.ParticleStatus;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -24,7 +23,7 @@ public class JetpackClientHandler {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null && mc.level != null) {
             if (!mc.isPaused()) {
-                ItemStack chest = mc.player.getItemBySlot(EquipmentSlot.CHEST);
+                ItemStack chest = JetpackUtils.getJetpackStack(mc.player);
                 Item item = chest.getItem();
                 if (!chest.isEmpty() && item instanceof JetpackItem && JetpackUtils.isFlying(mc.player)) {
                     if (ModConfigs.getClient().general.enableJetpackParticles && (mc.options.particles().get() != ParticleStatus.MINIMAL)) {

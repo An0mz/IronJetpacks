@@ -27,6 +27,7 @@
     "fabric": "*",
     "architectury": "*",
     "autoconfig1u": "*",
-    "minecraft": ">=1.21"
+    "minecraft": ">=1.21",
+    "trinkets": ">=3.10.0"
   }
 }

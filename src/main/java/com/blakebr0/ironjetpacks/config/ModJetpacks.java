@@ -22,7 +22,7 @@ public class ModJetpacks {
     private static final Jetpack GOLD = JetpackRegistry.createJetpack("gold", 3, 0xDEDE00, 2, 25, "minecraft:gold_ingot");
     private static final Jetpack DIAMOND = JetpackRegistry.createJetpack("diamond", 4, 0x4AEDD1, 4, 10, "minecraft:diamond");
     private static final Jetpack EMERALD = JetpackRegistry.createJetpack("emerald", 5, 0x41F384, 4, 15, "minecraft:emerald");
-    private static final Jetpack NETHERITE = JetpackRegistry.createJetpack("netherite", 6, 0x382013, 5, 15, "minecraft:netherite_ingot");
+    private static final Jetpack NETHERITE = JetpackRegistry.createJetpack("netherite", 6, 0x4A4440, 5, 15, "minecraft:netherite_ingot");
     private static final Jetpack CREATIVE = JetpackRegistry.createJetpack("creative", 0, 0xCF1AE9, 8, 0, "null").setCreative();
     
     private static final Jetpack COPPER = JetpackRegistry.createJetpack("copper", 1, 0xCE7201, 2, 12, "tag:c:copper_ingots");

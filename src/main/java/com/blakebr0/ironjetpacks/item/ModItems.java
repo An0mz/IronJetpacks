@@ -6,6 +6,7 @@ import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
+import dev.emi.trinkets.api.TrinketsApi;
 import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.core.Registry;
@@ -56,7 +57,9 @@ public class ModItems {
         
         // Jetpacks
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
-            Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_jetpack"), jetpack.item.get());
+            JetpackItem item = jetpack.item.get();
+            Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_jetpack"), item);
+            TrinketsApi.registerTrinket(item, item);
         }
     }
     

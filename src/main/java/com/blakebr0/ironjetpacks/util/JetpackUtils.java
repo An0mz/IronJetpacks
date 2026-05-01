@@ -18,6 +18,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class JetpackUtils {
     public static ItemStack getJetpackStack(Player player) {
@@ -31,6 +32,21 @@ public class JetpackUtils {
                 return equipped.isEmpty() ? ItemStack.EMPTY : equipped.get(0).getB();
             })
             .orElse(ItemStack.EMPTY);
+    }
+
+    public static void withJetpack(Player player, BiConsumer<ItemStack, Runnable> action) {
+        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+        if (!chest.isEmpty() && chest.getItem() instanceof JetpackItem) {
+            action.accept(chest, () -> {});
+            return;
+        }
+        TrinketsApi.getTrinketComponent(player).ifPresent(c -> {
+            var equipped = c.getEquipped(s -> s.getItem() instanceof JetpackItem);
+            if (!equipped.isEmpty()) {
+                var t = equipped.get(0);
+                action.accept(t.getB(), () -> t.getA().inventory().markUpdate());
+            }
+        });
     }
 
     public static boolean isFlying(Player player) {

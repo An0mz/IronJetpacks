@@ -10,6 +10,7 @@ import com.blakebr0.ironjetpacks.network.message.ToggleEngineMessage;
 import com.blakebr0.ironjetpacks.network.message.ToggleHoverMessage;
 import com.blakebr0.ironjetpacks.network.message.ToggleHUDMessage;
 import com.blakebr0.ironjetpacks.network.message.UpdateInputMessage;
+import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -19,9 +20,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
@@ -64,47 +63,44 @@ public class KeyBindingsHandler {
         Player player = client.player;
         if (player == null)
             return;
-        
-        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
-        Item item = chest.getItem();
-        
-        if (item instanceof JetpackItem) {
-            JetpackItem jetpack = (JetpackItem) item;
-            
-            while (keyEngine.consumeClick()) {
-                NetworkHandler.sendToServer(new ToggleEngineMessage());
-                boolean on = !jetpack.isEngineOn(chest);
-                Component state = on ? ModTooltips.ON.color(ChatFormatting.GREEN) : ModTooltips.OFF.color(ChatFormatting.RED);
-                player.displayClientMessage(ModTooltips.TOGGLE_ENGINE.args(state), true);
-            }
-            
-            while (keyHover.consumeClick()) {
-                NetworkHandler.sendToServer(new ToggleHoverMessage());
-                boolean on = !jetpack.isHovering(chest);
-                Component state = on ? ModTooltips.ON.color(ChatFormatting.GREEN) : ModTooltips.OFF.color(ChatFormatting.RED);
-                player.displayClientMessage(ModTooltips.TOGGLE_HOVER.args(state), true);
-            }
 
-            while (keyHUD.consumeClick()) {
-                NetworkHandler.sendToServer(new ToggleHUDMessage());
-                boolean on = !jetpack.isHUDEnabled(chest);
-                Component state = on ? ModTooltips.ON.color(ChatFormatting.GREEN) : ModTooltips.OFF.color(ChatFormatting.RED);
-                player.displayClientMessage(ModTooltips.TOGGLE_HUD.args(state), true);
-            }
+        ItemStack stack = JetpackUtils.getJetpackStack(player);
+        if (!(stack.getItem() instanceof JetpackItem jetpack))
+            return;
 
-            while (keyIncrementThrottle.consumeClick()) {
-                double throttle = jetpack.incrementThrottle(chest);
-                Component throttleText = Component.literal((int) (throttle * 100) + "%").withStyle(ChatFormatting.GREEN);
-                NetworkHandler.sendToServer(new IncrementThrottleMessage());
-                player.displayClientMessage(ModTooltips.CHANGE_THROTTLE.args(throttleText), true);
-            }
+        while (keyEngine.consumeClick()) {
+            NetworkHandler.sendToServer(new ToggleEngineMessage());
+            boolean on = !jetpack.isEngineOn(stack);
+            Component state = on ? ModTooltips.ON.color(ChatFormatting.GREEN) : ModTooltips.OFF.color(ChatFormatting.RED);
+            player.displayClientMessage(ModTooltips.TOGGLE_ENGINE.args(state), true);
+        }
 
-            while (keyDecrementThrottle.consumeClick()) {
-                double throttle = jetpack.decrementThrottle(chest);
-                Component throttleText = Component.literal((int) (throttle * 100) + "%").withStyle(ChatFormatting.RED);
-                NetworkHandler.sendToServer(new DecrementThrottleMessage());
-                player.displayClientMessage(ModTooltips.CHANGE_THROTTLE.args(throttleText), true);
-            }
+        while (keyHover.consumeClick()) {
+            NetworkHandler.sendToServer(new ToggleHoverMessage());
+            boolean on = !jetpack.isHovering(stack);
+            Component state = on ? ModTooltips.ON.color(ChatFormatting.GREEN) : ModTooltips.OFF.color(ChatFormatting.RED);
+            player.displayClientMessage(ModTooltips.TOGGLE_HOVER.args(state), true);
+        }
+
+        while (keyHUD.consumeClick()) {
+            NetworkHandler.sendToServer(new ToggleHUDMessage());
+            boolean on = !jetpack.isHUDEnabled(stack);
+            Component state = on ? ModTooltips.ON.color(ChatFormatting.GREEN) : ModTooltips.OFF.color(ChatFormatting.RED);
+            player.displayClientMessage(ModTooltips.TOGGLE_HUD.args(state), true);
+        }
+
+        while (keyIncrementThrottle.consumeClick()) {
+            double throttle = jetpack.incrementThrottle(stack);
+            Component throttleText = Component.literal((int) (throttle * 100) + "%").withStyle(ChatFormatting.GREEN);
+            NetworkHandler.sendToServer(new IncrementThrottleMessage());
+            player.displayClientMessage(ModTooltips.CHANGE_THROTTLE.args(throttleText), true);
+        }
+
+        while (keyDecrementThrottle.consumeClick()) {
+            double throttle = jetpack.decrementThrottle(stack);
+            Component throttleText = Component.literal((int) (throttle * 100) + "%").withStyle(ChatFormatting.RED);
+            NetworkHandler.sendToServer(new DecrementThrottleMessage());
+            player.displayClientMessage(ModTooltips.CHANGE_THROTTLE.args(throttleText), true);
         }
     }
     

@@ -181,9 +181,10 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag advanced) {
         if (!this.jetpack.creative) {
             long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
-            tooltip.add(Component.literal(UnitUtils.formatEnergy(stored, null)));
+            long capacity = (long) this.jetpack.capacity;
+            tooltip.add(Component.literal(UnitUtils.formatEnergy(stored, null) + " / " + UnitUtils.formatEnergy(capacity, null)));
         } else {
-            tooltip.add(Component.literal("-1 E / ").withStyle(ChatFormatting.GRAY).append(ModTooltips.INFINITE.color(ChatFormatting.GRAY)).append(" E"));
+            tooltip.add(ModTooltips.INFINITE.color(ChatFormatting.GRAY));
         }
 
         Component tier = ModTooltips.TIER.args(this.jetpack.creative ? "Creative" : this.jetpack.tier).withStyle(this.jetpack.rarity.color());

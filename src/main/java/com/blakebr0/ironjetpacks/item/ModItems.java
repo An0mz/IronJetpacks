@@ -6,15 +6,12 @@ import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.registry.JetpackRegistry;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Maps;
-import dev.emi.trinkets.api.TrinketsApi;
 import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-
-import static com.blakebr0.ironjetpacks.IronJetpacks.ITEM_GROUP;
 
 public class ModItems {
     public static final Map<ResourceLocation, Supplier<Item>> ENTRIES = Maps.newHashMap();
@@ -59,7 +56,6 @@ public class ModItems {
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
             JetpackItem item = jetpack.item.get();
             Registry.register(registry, ResourceLocation.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_jetpack"), item);
-            TrinketsApi.registerTrinket(item, item);
         }
     }
     

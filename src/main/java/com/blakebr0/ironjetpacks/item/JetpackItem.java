@@ -9,8 +9,6 @@ import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
 import com.mojang.datafixers.util.Pair;
 import dev.architectury.extensions.ItemExtension;
-import dev.emi.trinkets.api.SlotReference;
-import dev.emi.trinkets.api.Trinket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
@@ -35,7 +33,7 @@ import team.reborn.energy.api.base.SimpleEnergyItem;
 
 import java.util.List;
 
-public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemExtension, Trinket {
+public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemExtension {
     private final Jetpack jetpack;
 
     public JetpackItem(Jetpack jetpack, Properties settings) {
@@ -49,12 +47,6 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
         return Component.translatable("item.iron-jetpacks.jetpack", name);
     }
 
-    // Called by Trinkets each tick when equipped in the back slot
-    @Override
-    public void tick(ItemStack stack, SlotReference slot, LivingEntity entity) {
-        if (!(entity instanceof Player player)) return;
-        this.performFlight(stack, player, () -> slot.inventory().markUpdate());
-    }
 
     /*
      * Jetpack logic is very much like Simply Jetpacks, since I used it to learn how to make this work
@@ -74,7 +66,7 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
         }
     }
 
-    private void performFlight(ItemStack stack, Player player, Runnable syncEnergy) {
+    public void performFlight(ItemStack stack, Player player, Runnable syncEnergy) {
         if (!this.isEngineOn(stack)) return;
         boolean hover = this.isHovering(stack);
         if (InputHandler.isHoldingUp(player) || hover && !player.onGround()) {

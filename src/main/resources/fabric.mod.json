@@ -27,7 +27,6 @@
     "fabric": "*",
     "architectury": "*",
     "cloth-config": "*",
-    "minecraft": ">=1.21",
-    "trinkets": ">=3.10.0"
+    "minecraft": ">=1.21"
   }
 }

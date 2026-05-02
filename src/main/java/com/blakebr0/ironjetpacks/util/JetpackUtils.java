@@ -1,17 +1,17 @@
 package com.blakebr0.ironjetpacks.util;
 
 import com.blakebr0.ironjetpacks.IronJetpacks;
+import com.blakebr0.ironjetpacks.compat.trinkets.TrinketsCompat;
 import com.blakebr0.ironjetpacks.handler.InputHandler;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
 import com.blakebr0.ironjetpacks.registry.Jetpack;
-import dev.emi.trinkets.api.TrinketsApi;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -26,12 +26,10 @@ public class JetpackUtils {
         if (!chest.isEmpty() && chest.getItem() instanceof JetpackItem) {
             return chest;
         }
-        return TrinketsApi.getTrinketComponent(player)
-            .map(c -> {
-                var equipped = c.getEquipped(s -> s.getItem() instanceof JetpackItem);
-                return equipped.isEmpty() ? ItemStack.EMPTY : equipped.get(0).getB();
-            })
-            .orElse(ItemStack.EMPTY);
+        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+            return TrinketsCompat.getEquippedJetpackStack(player);
+        }
+        return ItemStack.EMPTY;
     }
 
     public static void withJetpack(Player player, BiConsumer<ItemStack, Runnable> action) {
@@ -40,13 +38,9 @@ public class JetpackUtils {
             action.accept(chest, () -> {});
             return;
         }
-        TrinketsApi.getTrinketComponent(player).ifPresent(c -> {
-            var equipped = c.getEquipped(s -> s.getItem() instanceof JetpackItem);
-            if (!equipped.isEmpty()) {
-                var t = equipped.get(0);
-                action.accept(t.getB(), () -> t.getA().inventory().markUpdate());
-            }
-        });
+        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+            TrinketsCompat.withJetpack(player, action);
+        }
     }
 
     public static boolean isFlying(Player player) {

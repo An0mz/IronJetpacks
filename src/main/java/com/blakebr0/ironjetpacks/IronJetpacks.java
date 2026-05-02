@@ -1,6 +1,7 @@
 package com.blakebr0.ironjetpacks;
 
 import com.blakebr0.ironjetpacks.compat.ftl.FtlCompat;
+import com.blakebr0.ironjetpacks.compat.trinkets.TrinketsCompat;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.crafting.JetpackRecipeInjector;
 import com.blakebr0.ironjetpacks.crafting.ModRecipeSerializers;
@@ -81,7 +82,10 @@ public class IronJetpacks implements ModInitializer {
             }
         }
         FtlCompat.init();
-        
+        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+            TrinketsCompat.init();
+        }
+
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> InputHandler.clear());
         PlayerEvent.CHANGE_DIMENSION.register((player, oldLevel, newLevel) -> InputHandler.onChangeDimension(player));
         PlayerEvent.PLAYER_QUIT.register(InputHandler::onLogout);

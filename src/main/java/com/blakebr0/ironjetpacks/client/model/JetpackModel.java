@@ -163,6 +163,35 @@ public class JetpackModel extends HumanoidModel<HumanoidRenderState> {
         model.zRot = z;
     }
     
+    /**
+     * Called from the Trinkets renderer where we have no HumanoidRenderState.
+     * {@link dev.emi.trinkets.api.client.TrinketRenderer#followBodyRotations} handles body pose;
+     * this method only sets up the energy bar visibility.
+     */
+    public void setupEnergyBars() {
+        if (this.jetpack.getJetpack().creative) {
+            this.resetEnergyBars();
+            this.energyBarLeft[5].visible = true;
+            this.energyBarRight[5].visible = true;
+        } else {
+            ItemStack stack = this.currentItemStack;
+            EnergyStorage energy = EnergyStorage.ITEM.find(stack, ContainerItemContext.ofSingleSlot(new SingleStackStorage() {
+                @Override public ItemStack getStack() { return stack; }
+                @Override protected void setStack(ItemStack s) { }
+            }));
+            double stored = (energy != null && energy.getCapacity() > 0) ? (double) energy.getAmount() / energy.getCapacity() : 0.0;
+            int barState = 0;
+            if (stored > 0.8) barState = 5;
+            else if (stored > 0.6) barState = 4;
+            else if (stored > 0.4) barState = 3;
+            else if (stored > 0.2) barState = 2;
+            else if (stored > 0) barState = 1;
+            this.resetEnergyBars();
+            this.energyBarLeft[barState].visible = true;
+            this.energyBarRight[barState].visible = true;
+        }
+    }
+
     private void resetEnergyBars() {
         for (int i = 0; i < 6; i++) {
             this.energyBarLeft[i].visible = false;

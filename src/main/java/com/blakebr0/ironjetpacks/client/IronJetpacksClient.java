@@ -2,6 +2,7 @@ package com.blakebr0.ironjetpacks.client;
 
 import com.blakebr0.ironjetpacks.IronJetpacks;
 import com.blakebr0.ironjetpacks.client.model.JetpackModel;
+import com.blakebr0.ironjetpacks.compat.trinkets.TrinketsClientCompat;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.handler.ColorHandler;
 import com.blakebr0.ironjetpacks.handler.HudHandler;
@@ -18,6 +19,7 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -43,6 +45,11 @@ public class IronJetpacksClient {
         ModelHandler.onClientSetup();
 
         AutoConfig.register(ModConfigs.Client.class, JanksonConfigSerializer::new);
+
+        if (FabricLoader.getInstance().isModLoaded("trinkets")) {
+            TrinketsClientCompat.init();
+        }
+
         for (Jetpack jetpack : JetpackRegistry.getInstance().getAllJetpacks()) {
             ArmorRenderer.register(new ArmorRenderer() {
                 private JetpackModel model;

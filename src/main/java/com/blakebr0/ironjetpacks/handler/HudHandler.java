@@ -5,6 +5,7 @@ import com.blakebr0.ironjetpacks.client.util.HudHelper;
 import com.blakebr0.ironjetpacks.client.util.HudHelper.HudPos;
 import com.blakebr0.ironjetpacks.config.ModConfigs;
 import com.blakebr0.ironjetpacks.item.JetpackItem;
+import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -14,8 +15,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 @Environment(EnvType.CLIENT)
@@ -26,10 +25,8 @@ public class HudHandler {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) {
             if (ModConfigs.getClient().hud.enableHud && (ModConfigs.getClient().hud.showHudOverChat || !ModConfigs.getClient().hud.showHudOverChat && !(mc.screen instanceof ChatScreen)) && !mc.options.hideGui) {
-                ItemStack chest = mc.player.getItemBySlot(EquipmentSlot.CHEST);
-                Item item = chest.getItem();
-                if (!chest.isEmpty() && item instanceof JetpackItem) {
-                    JetpackItem jetpack = (JetpackItem) item;
+                ItemStack chest = JetpackUtils.getActiveJetpackStack(mc.player);
+                if (!chest.isEmpty() && chest.getItem() instanceof JetpackItem jetpack) {
                     HudPos pos = HudHelper.getHudPos();
                     if (pos != null) {
                         int xPos = (int) (pos.x / 0.33) - 18;

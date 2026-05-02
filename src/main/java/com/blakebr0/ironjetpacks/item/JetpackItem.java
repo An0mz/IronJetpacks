@@ -8,6 +8,8 @@ import com.blakebr0.ironjetpacks.registry.Jetpack;
 import com.blakebr0.ironjetpacks.util.JetpackUtils;
 import com.blakebr0.ironjetpacks.util.UnitUtils;
 import dev.architectury.extensions.ItemExtension;
+import dev.emi.trinkets.api.SlotReference;
+import dev.emi.trinkets.api.Trinket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -19,6 +21,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.CustomData;
@@ -29,7 +32,7 @@ import team.reborn.energy.api.base.SimpleEnergyItem;
 
 import java.util.List;
 
-public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemExtension {
+public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemExtension, Trinket {
     private final Jetpack jetpack;
 
     public JetpackItem(Jetpack jetpack, Properties settings) {
@@ -129,6 +132,101 @@ public class JetpackItem extends ArmorItem implements Colored, Enableable, ItemE
                                 ((ServerPlayNetworkHandlerAccessor) ((ServerPlayer) player).connection).setFloatingTicks(0);
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    // ---- Trinket slot implementation (chest/back) ----
+
+    /**
+     * Per-entity map of the last item type that was UNEQUIPPED from a trinket slot.
+     * Used to detect genuine equip events vs. data-only changes (e.g. energy drain)
+     * that cause Trinkets to fire onUnequip+onEquip every tick.
+     */
+    private static final java.util.Map<java.util.UUID, net.minecraft.world.item.Item> LAST_UNEQUIPPED =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    @Override
+    public void onEquip(ItemStack stack, SlotReference slot, LivingEntity entity) {
+        // Only play the equip sound when the item *type* changed (genuine equip),
+        // not when only the DataComponents changed (e.g. energy consumed each tick).
+        net.minecraft.world.item.Item last = LAST_UNEQUIPPED.remove(entity.getUUID());
+        if (last != stack.getItem()) {
+            entity.playSound(net.minecraft.sounds.SoundEvents.ARMOR_EQUIP_GENERIC.value());
+        }
+    }
+
+    @Override
+    public void onUnequip(ItemStack stack, SlotReference slot, LivingEntity entity) {
+        LAST_UNEQUIPPED.put(entity.getUUID(), stack.getItem());
+    }
+
+    @Override
+    public void tick(ItemStack stack, SlotReference slot, LivingEntity entity) {
+        if (!(entity instanceof Player player)) return;
+        if (!this.isEngineOn(stack)) return;
+
+        boolean hover = this.isHovering(stack);
+        if (InputHandler.isHoldingUp(player) || (hover && !player.onGround())) {
+            Jetpack info = this.jetpack;
+
+            double hoverSpeed = InputHandler.isHoldingDown(player) ? info.speedHover : info.speedHoverSlow;
+            double currentAccel = info.accelVert * (player.getDeltaMovement().y() < 0.3D ? 2.5D : 1.0D);
+            double currentSpeedVertical = info.speedVert * (player.isUnderWater() ? 0.4D : 1.0D);
+            double usage = (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.usage * info.sprintFuel : info.usage;
+
+            boolean creative = info.creative;
+            boolean canFly = creative;
+
+            if (!creative) {
+                long usageLong = (long) usage;
+                if (player.level().isClientSide()) {
+                    canFly = SimpleEnergyItem.getStoredEnergyUnchecked(stack) >= usageLong;
+                } else {
+                    long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
+                    if (stored >= usageLong) {
+                        SimpleEnergyItem.setStoredEnergyUnchecked(stack, stored - usageLong);
+                        if (player instanceof ServerPlayer serverPlayer) {
+                            serverPlayer.inventoryMenu.broadcastChanges();
+                        }
+                        canFly = true;
+                    }
+                }
+            }
+
+            if (canFly) {
+                double motionY = player.getDeltaMovement().y();
+                double throttle = this.getThrottle(stack);
+                double vertSprintMulti = motionY >= 0 && (player.isSprinting() || InputHandler.isHoldingSprint(player)) ? info.sprintSpeedVert : 1.0D;
+
+                if (InputHandler.isHoldingUp(player)) {
+                    if (!hover) {
+                        this.fly(player, Math.min(motionY + currentAccel, currentSpeedVertical) * throttle * vertSprintMulti);
+                    } else {
+                        if (InputHandler.isHoldingDown(player)) {
+                            this.fly(player, Math.min(motionY + currentAccel, -info.speedHoverSlow));
+                        } else {
+                            this.fly(player, Math.min(motionY + currentAccel, info.speedHoverAscend) * throttle * vertSprintMulti);
+                        }
+                    }
+                } else {
+                    this.fly(player, Math.min(motionY + currentAccel, -hoverSpeed));
+                }
+
+                float speedSideways = (float) ((player.isShiftKeyDown() ? info.speedSide * 0.5F : info.speedSide) * throttle);
+                float speedForward = (float) (player.isSprinting() ? speedSideways * info.sprintSpeed : speedSideways);
+
+                if (InputHandler.isHoldingForwards(player)) player.moveRelative(1, new Vec3(0, 0, speedForward));
+                if (InputHandler.isHoldingBackwards(player)) player.moveRelative(1, new Vec3(0, 0, -speedSideways * 0.8F));
+                if (InputHandler.isHoldingLeft(player)) player.moveRelative(1, new Vec3(speedSideways, 0, 0));
+                if (InputHandler.isHoldingRight(player)) player.moveRelative(1, new Vec3(-speedSideways, 0, 0));
+
+                if (!player.level().isClientSide()) {
+                    player.fallDistance = 0.0F;
+                    if (player instanceof ServerPlayer) {
+                        ((ServerPlayNetworkHandlerAccessor) ((ServerPlayer) player).connection).setFloatingTicks(0);
                     }
                 }
             }

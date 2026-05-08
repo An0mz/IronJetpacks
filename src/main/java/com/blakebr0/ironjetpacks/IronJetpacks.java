@@ -58,6 +58,15 @@ public class IronJetpacks implements ModInitializer {
                         .title(Component.translatable("itemGroup.iron-jetpacks.iron-jetpacks"))
                         .icon(() -> new ItemStack(ModItems.STRAP.get()))
                         .displayItems((featureFlagSet, output) -> {
+                            // Static items
+                            output.accept(ModItems.STRAP.get());
+                            output.accept(ModItems.BASIC_COIL.get());
+                            output.accept(ModItems.ADVANCED_COIL.get());
+                            output.accept(ModItems.ELITE_COIL.get());
+                            output.accept(ModItems.ULTIMATE_COIL.get());
+                            output.accept(ModItems.EXPERT_COIL.get());
+
+                            // Dynamic jetpack components and jetpacks
                             for (Jetpack jetpack : JetpackRegistry.getInstance().getAllJetpacks()) {
                                 output.accept(jetpack.cell);
                                 output.accept(jetpack.thruster);

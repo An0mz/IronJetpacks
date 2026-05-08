@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    "LLL",
+    " I "
+  ],
+  "key": {
+    "L": "minecraft:leather",
+    "I": "minecraft:iron_nugget"
+  },
+  "result": {
+    "id": "iron-jetpacks:strap"
+  }
+}

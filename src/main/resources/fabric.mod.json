@@ -17,7 +17,8 @@
     ],
     "kubejs-set-recipes": [
       "com.blakebr0.ironjetpacks.compat.kubejs.KubeJSCompat"
-    ]
+    ],
+    "jei_plugin": ["com.blakebr0.ironjetpacks.compat.jei.JeiCompat"]
   },
   "accessWidener": "iron-jetpacks.accesswidener",
   "mixins": [

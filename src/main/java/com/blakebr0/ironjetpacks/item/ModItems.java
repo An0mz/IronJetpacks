@@ -15,26 +15,24 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 
-import static com.blakebr0.ironjetpacks.IronJetpacks.ITEM_GROUP;
-
 public class ModItems {
     public static final Map<Identifier, Supplier<Item>> ENTRIES = Maps.newHashMap();
-    
+
     public static final Supplier<Item> STRAP = register("strap");
     public static final Supplier<Item> BASIC_COIL = register("basic_coil");
     public static final Supplier<Item> ADVANCED_COIL = register("advanced_coil");
     public static final Supplier<Item> ELITE_COIL = register("elite_coil");
     public static final Supplier<Item> ULTIMATE_COIL = register("ultimate_coil");
     public static final Supplier<Item> EXPERT_COIL = register("expert_coil");
-    
+
     public static void register() {
         Registry<Item> registry = BuiltInRegistries.ITEM;
         JetpackRegistry jetpacks = JetpackRegistry.getInstance();
-        
+
         ENTRIES.forEach((id, item) -> Registry.register(registry, id, item.get()));
-        
+
         ModJetpacks.loadJsons();
-        
+
         // Energy Cells
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
             Identifier cellLoc = Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_cell");
@@ -58,18 +56,18 @@ public class ModItems {
             jetpack.setCapacitorItem(item);
             Registry.register(registry, capacitorLoc, item);
         }
-        
+
         // Jetpacks
         for (Jetpack jetpack : jetpacks.getAllJetpacks()) {
             Registry.register(registry, Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, jetpack.name + "_jetpack"), jetpack.item.get());
         }
     }
-    
+
     private static Supplier<Item> register(String name) {
         ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, name));
         return register(name, Suppliers.memoize(() -> new Item(new Item.Properties().setId(key))));
     }
-    
+
     private static Supplier<Item> register(String name, Supplier<Item> item) {
         Identifier loc = Identifier.fromNamespaceAndPath(IronJetpacks.MOD_ID, name);
         ENTRIES.put(loc, item);

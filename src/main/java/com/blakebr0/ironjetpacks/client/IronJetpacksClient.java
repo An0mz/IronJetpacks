@@ -40,7 +40,7 @@ public class IronJetpacksClient {
         ColorHandler.onClientSetup();
         ModelHandler.onClientSetup();
 
-        AutoConfig.register(ModConfigs.Client.class, JanksonConfigSerializer::new);
+        //AutoConfig.register(ModConfigs.Client.class, JanksonConfigSerializer::new);
         for (Jetpack jetpack : JetpackRegistry.getInstance().getAllJetpacks()) {
             ArmorRenderer.register(new ArmorRenderer() {
                 private JetpackModel model;

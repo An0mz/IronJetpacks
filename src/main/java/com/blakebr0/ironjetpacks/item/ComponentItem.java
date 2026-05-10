@@ -12,7 +12,7 @@ public class ComponentItem extends Item implements Colored, Enableable {
     private final boolean enabled;
     private final int color;
     
-    public ComponentItem(Jetpack jetpack, String type, Properties settings) {
+    public ComponentItem(Jetpack jetpack, String type, Item.Properties settings) {
         super(settings.rarity(jetpack.rarity));
         this.name = jetpack.name;
         this.color = jetpack.color;

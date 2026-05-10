@@ -174,7 +174,7 @@ public class JetpackItem extends Item implements Colored, Enableable {
 
     @Environment(EnvType.CLIENT)
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag advanced) {
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag advanced) {
         if (!this.jetpack.creative) {
             long stored = SimpleEnergyItem.getStoredEnergyUnchecked(stack);
             long capacity = (long) this.jetpack.capacity;

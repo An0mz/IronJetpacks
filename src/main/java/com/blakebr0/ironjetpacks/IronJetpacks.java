@@ -74,7 +74,6 @@ public class IronJetpacks implements ModInitializer {
                                 JetpackItem item = jetpack.item.get();
 
                                 if (jetpack.creative) {
-                                    // Creative jetpacks have no energy, show as-is
                                     output.accept(new ItemStack(item));
                                 } else {
                                     // Show only the fully-charged variant so only one entry appears

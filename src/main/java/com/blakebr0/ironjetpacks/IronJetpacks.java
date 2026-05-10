@@ -72,9 +72,12 @@ public class IronJetpacks implements ModInitializer {
                                 output.accept(jetpack.thruster);
                                 output.accept(jetpack.capacitor);
                                 JetpackItem item = jetpack.item.get();
-                                output.accept(new ItemStack(item));
 
-                                if (!jetpack.creative) {
+                                if (jetpack.creative) {
+                                    // Creative jetpacks have no energy, show as-is
+                                    output.accept(new ItemStack(item));
+                                } else {
+                                    // Show only the fully-charged variant so only one entry appears
                                     ItemStack stack = new ItemStack(item);
                                     CompoundTag tag = stack.has(DataComponents.CUSTOM_DATA) ? stack.get(DataComponents.CUSTOM_DATA).copyTag() : new CompoundTag();
                                     tag.putDouble("energy", jetpack.capacity);
